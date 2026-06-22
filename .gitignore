@@ -1,0 +1,16 @@
+# PyCharm and IDE files
+.idea/
+*.iws
+*.iml
+
+# Data and local outputs
+data/
+raw_texts/
+
+# Python environment & cache
+__pycache__/
+*.pyc
+.env
+.venv/
+env/
+venv/
