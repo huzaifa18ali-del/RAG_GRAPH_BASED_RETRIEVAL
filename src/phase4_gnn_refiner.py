@@ -40,20 +40,23 @@ except (ImportError, OSError):
 
 
 # ---------------------------------------------------------------------------
-# Configuration
+# Configuration — loaded from config.yaml
 # ---------------------------------------------------------------------------
-IDEA_GRAPH_PATH    = os.path.join("data", "idea_graph.json")
-CLUSTER_PATH       = os.path.join("data", "cluster_summary.json")
-MANIFEST_PATH      = os.path.join("data", "embeddings_manifest.json")
-OUTPUT_JSON_PATH   = os.path.join("data", "summary.json")
-OUTPUT_TEXT_PATH   = os.path.join("data", "summary.txt")
+from config_loader import load_config as _load_config
+_cfg = _load_config()
 
-TOP_N_PER_CLUSTER  = 4       # Max body sentences per cluster (excl. centroid)
-MAX_BRIDGES        = 2       # Cross-cluster bridge sentences per cluster
-MIN_SENT_WORDS     = 6       # Sentences shorter than this are merge candidates
-MAX_LINE_WIDTH     = 120     # Wrap width for plain-text output
-PAGERANK_DAMPING   = 0.85
-INCLUDE_NOISE      = True    # Whether to append the noise cluster at the end
+IDEA_GRAPH_PATH    = _cfg.paths.full("output_graph")
+CLUSTER_PATH       = _cfg.paths.full("output_clusters")
+MANIFEST_PATH      = _cfg.paths.full("output_manifest")
+OUTPUT_JSON_PATH   = _cfg.paths.full("output_summary_json")
+OUTPUT_TEXT_PATH   = _cfg.paths.full("output_summary_txt")
+
+TOP_N_PER_CLUSTER  = _cfg.phase4.top_n_per_cluster
+MAX_BRIDGES        = _cfg.phase4.max_bridges
+MIN_SENT_WORDS     = _cfg.phase4.min_sent_words
+MAX_LINE_WIDTH     = _cfg.phase4.max_line_width
+PAGERANK_DAMPING   = _cfg.phase4.pagerank_damping
+INCLUDE_NOISE      = _cfg.phase4.include_noise
 
 
 # ---------------------------------------------------------------------------
@@ -151,6 +154,35 @@ def _subject_verb_chain(sent_text: str) -> Optional[str]:
     return " ".join(tokens) if len(tokens) >= 2 else None
 
 
+def _join_with_semicolon(left: str, right: str) -> str:
+    """
+    Join two sentence fragments with a semicolon.
+
+    Lowercases the first word of *right* if it starts with a capital letter
+    that isn't a proper noun — fixes the pronoun bug where
+    "He ran." + "Fast." → "He ran; Fast." (wrong)
+                        → "He ran; fast." (correct)
+
+    Heuristic: if the first word is a common pronoun or common adverb
+    (not a name/noun), lowercase it. For everything else, preserve the
+    original casing since it might be a proper noun.
+    """
+    LOWERCASE_AFTER_SEMICOLON = {
+        "i", "he", "she", "it", "they", "we", "you",
+        "his", "her", "their", "its", "our", "my", "your",
+        "this", "that", "these", "those",
+        "but", "and", "or", "so", "yet", "for",
+        "however", "therefore", "thus", "hence", "also",
+        "then", "now", "still", "already", "soon", "fast",
+        "quickly", "slowly", "always", "never", "often",
+    }
+    right_stripped = right.lstrip()
+    first_word     = right_stripped.split()[0].rstrip(".,;:!?") if right_stripped else ""
+    if first_word.lower() in LOWERCASE_AFTER_SEMICOLON:
+        right_stripped = right_stripped[0].lower() + right_stripped[1:]
+    return left.rstrip(".") + "; " + right_stripped
+
+
 def merge_short_sentences(sentences: list[str], min_words: int = MIN_SENT_WORDS) -> list[str]:
     """
     Merge consecutive short sentences into the preceding longer one.
@@ -158,12 +190,9 @@ def merge_short_sentences(sentences: list[str], min_words: int = MIN_SENT_WORDS)
     Strategy:
       - Iterate through the sentence list.
       - If a sentence has fewer than *min_words* words, append it to the
-        previous sentence (joined with "; ").
+        previous sentence using _join_with_semicolon (handles capitalization).
       - If it's the first sentence and short, it becomes the seed and the
         next sentence is appended to it.
-
-    This avoids choppy single-clause entries in the final paragraph without
-    requiring any neural generation step.
 
     Args:
         sentences: Ordered list of sentence strings.
@@ -182,20 +211,19 @@ def merge_short_sentences(sentences: list[str], min_words: int = MIN_SENT_WORDS)
         word_count = len(sent.split())
         if buffer:
             if word_count < min_words:
-                # Both buffer and current are short — keep joining
-                buffer = buffer.rstrip(".") + "; " + sent.lstrip()
+                buffer = _join_with_semicolon(buffer, sent)
             else:
                 merged.append(buffer)
                 buffer = sent
         else:
             if word_count < min_words:
-                buffer = sent   # hold and try to merge with next
+                buffer = sent
             else:
                 merged.append(sent)
 
     if buffer:
         if merged:
-            merged[-1] = merged[-1].rstrip(".") + "; " + buffer.lstrip()
+            merged[-1] = _join_with_semicolon(merged[-1], buffer)
         else:
             merged.append(buffer)
 
@@ -395,26 +423,31 @@ def assemble_paragraph(
 # Plain-text rendering
 # ---------------------------------------------------------------------------
 
-def render_plain_text(structured_summary: list[dict], line_width: int = MAX_LINE_WIDTH) -> str:
+def render_plain_text(
+    structured_summary: list[dict],
+    line_width: int = MAX_LINE_WIDTH,
+    debug: bool = False,
+) -> str:
     """
     Render the structured summary as a plain-text outline.
 
-    Format per cluster
-    ------------------
-    ## [Cluster N]  (size=K)
-    TOPIC: <centroid sentence>
+    Format per cluster:
+        ## [Cluster N]  (size=K)
+        TOPIC: <centroid sentence>
 
-    <paragraph>
+        <paragraph>
 
-    BRIDGING IDEAS:
-      → [Cluster X] "bridge sentence"  (similarity=0.82)
+        Key points:
+          • sentence text              (debug=False — clean product output)
+          • [sid=42  c=0.8341] text    (debug=True  — shows internal scores)
+
+        Bridging ideas:
+          → [Cluster X] "bridge sentence"  (sim=0.82, shown only in debug)
 
     Args:
-        structured_summary: Output of build_structured_summary().
-        line_width:         Hard-wrap column width.
-
-    Returns:
-        Full plain-text string ready to write to file or print.
+        structured_summary : Output of build_structured_summary().
+        line_width         : Hard-wrap column width.
+        debug              : If True, include sentence_id and centrality scores.
     """
     wrapper = textwrap.TextWrapper(width=line_width, initial_indent="  ", subsequent_indent="  ")
     lines: list[str] = []
@@ -432,21 +465,26 @@ def render_plain_text(structured_summary: list[dict], line_width: int = MAX_LINE
         lines.append(heading)
         lines.append(sep)
 
-        # Topic heading
         lines.append(f"TOPIC:  {entry['centroid_sentence']}")
         lines.append("")
 
-        # Paragraph
         para = entry.get("paragraph", "")
         if para:
             lines.append(wrapper.fill(para))
         lines.append("")
 
-        # Bullet subpoints (top nodes)
         if entry.get("body_sentences"):
             lines.append("  Key points:")
             for b in entry["body_sentences"]:
-                bullet = f"  • [sid={b['sentence_id']}  c={b['centrality']:.4f}]  {b['sentence']}"
+                if debug:
+                    # Show internal scores for diagnostics
+                    bullet = (
+                        f"  • [sid={b['sentence_id']}  c={b['centrality']:.4f}]"
+                        f"  {b['sentence']}"
+                    )
+                else:
+                    # Clean product output — no internal metadata
+                    bullet = f"  • {b['sentence']}"
                 lines.append(
                     textwrap.fill(
                         bullet,
@@ -457,15 +495,17 @@ def render_plain_text(structured_summary: list[dict], line_width: int = MAX_LINE
                 )
             lines.append("")
 
-        # Bridge sentences
         if entry.get("bridges"):
             lines.append("  Bridging ideas:")
             for br in entry["bridges"]:
-                bridge_line = (
-                    f"  → [Cluster {br['cluster_id']}] "
-                    f"\"{br['sentence']}\"  "
-                    f"(sim={br['similarity']:.4f})"
-                )
+                if debug:
+                    bridge_line = (
+                        f"  → [Cluster {br['cluster_id']}] "
+                        f"\"{br['sentence']}\"  "
+                        f"(sim={br['similarity']:.4f})"
+                    )
+                else:
+                    bridge_line = f"  → \"{br['sentence']}\""
                 lines.append(
                     textwrap.fill(
                         bridge_line,
@@ -531,8 +571,16 @@ def build_structured_summary(
 
     for cluster in ordered_clusters:
         cid          = cluster["cluster_id"]
+        cluster_size = cluster.get("size", 1)
         centroid_sid = cluster.get("centroid_sentence_id")
         centroid_txt = cluster.get("centroid_sentence", "")
+
+        # Scale top_n with cluster size — a 3-sentence cluster shouldn't get
+        # the same treatment as a 200-sentence cluster.
+        # Formula: max(2, min(8, cluster_size // 10))
+        # Examples: size=3→2, size=20→2, size=50→5, size=100→8, size=200→8
+        dynamic_top_n = max(2, min(top_n * 2, cluster_size // 10))
+        dynamic_top_n = max(dynamic_top_n, min(top_n, cluster_size - 1))
 
         # Centroid is always "used" — prevent it appearing as a body sentence later
         if centroid_sid is not None:
@@ -540,7 +588,7 @@ def build_structured_summary(
 
         body_entries, bridges = select_cluster_sentences(
             cluster, graph_index, pagerank, used_sids,
-            top_n=top_n, max_bridges=max_bridges,
+            top_n=dynamic_top_n, max_bridges=max_bridges,
             pagerank_rank_map=pr_rank_map,
         )
 
@@ -594,9 +642,26 @@ def print_diagnostics(G: nx.DiGraph, pagerank: dict[int, float]) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
-def main() -> None:
-    """Phase 4 entry point: cluster-aware structured summarization."""
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
+def run(debug: bool = False) -> list[dict]:
+    """
+    Importable entry point for Phase 4.
+
+    Calling this from another module or pipeline orchestrator:
+        from phase4_gnn_refiner import run
+        summary = run(debug=False)   # clean output
+        summary = run(debug=True)    # includes sid/centrality in plain text
+
+    Args:
+        debug : If True, includes sentence_id and centrality scores in the
+                plain-text output. Default False (clean product output).
+
+    Returns:
+        structured_summary : list of cluster dicts — same as OUTPUT_JSON_PATH.
+    """
     # 1 — Load all inputs
     idea_graph      = _load_json(IDEA_GRAPH_PATH, "idea_graph.json")
     cluster_summary = _load_json(CLUSTER_PATH,    "cluster_summary.json")
@@ -623,7 +688,7 @@ def main() -> None:
     )
 
     # 4 — Render + save plain text
-    plain_text = render_plain_text(structured_summary)
+    plain_text = render_plain_text(structured_summary, debug=debug)
     print("\n" + plain_text)
     _save_text(plain_text, OUTPUT_TEXT_PATH, label="Plain-text summary")
 
@@ -631,6 +696,33 @@ def main() -> None:
     _save_json(structured_summary, OUTPUT_JSON_PATH, label="Structured JSON summary")
 
     print("\nPhase 4 complete.")
+    return structured_summary
+
+
+def main() -> None:
+    """
+    CLI entry point. Parses --debug flag and delegates to run().
+
+    Usage:
+        python phase4_gnn_refiner.py             # clean output
+        python phase4_gnn_refiner.py --debug     # show sid/centrality scores
+
+    For programmatic use from another module, import and call run() directly:
+        from phase4_gnn_refiner import run
+        summary = run(debug=True)
+    """
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Phase 4 — Cluster-aware structured summarization."
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+        help="Include sentence_id and centrality scores in plain-text output.",
+    )
+    args = parser.parse_args()
+    run(debug=args.debug)
 
 
 if __name__ == "__main__":

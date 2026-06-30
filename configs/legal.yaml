@@ -1,0 +1,72 @@
+# configs/legal.yaml
+# Domain profile: Legal discovery / contract analysis
+#
+# Key differences from default (literary) profile:
+#   - Higher min_words: legal clauses need subject + predicate + object to be meaningful
+#   - Higher similarity floor: legal language is precise; only tight semantic matches count
+#   - More neighbors per node: statutes often reference many other provisions
+#   - Larger summary sections: legal summaries need more context per clause cluster
+#   - Custom theme dictionary: swap out the literary themes for legal concepts
+
+paths:
+  data_dir: "data"
+  raw_file_suffix: "_clean.txt"
+  output_sentences:    "output_v2.json"
+  output_embeddings:   "embeddings.npy"
+  output_manifest:     "embeddings_manifest.json"
+  output_graph:        "idea_graph.json"
+  output_clusters:     "cluster_summary.json"
+  output_summary_json: "summary.json"
+  output_summary_txt:  "summary.txt"
+  output_faiss_index:  "faiss.index"
+  output_batch:        "batch_results.jsonl"
+  export_dir:          "exports"
+
+pdf:
+  skip_first_page: false    # legal docs rarely have a redundant cover page
+  ocr_dpi: 300
+  min_text_chars: 20
+  column_gap_ratio: 0.15    # legal docs use narrower column gaps
+
+phase1:
+  min_words: 6              # legal fragments need more substance to be meaningful
+
+phase2:
+  model_name: "all-mpnet-base-v2"
+  batch_size: 32
+  max_tokens: 384
+  chunk_stride: 128
+
+phase3:
+  top_k: 8                          # statutes cross-reference heavily
+  faiss_threshold: 5000
+  faiss_n_list: 100
+  faiss_n_probe: 32
+  dynamic_threshold_sigma: 0.4      # tighter — legal concepts cluster precisely
+  global_threshold_min: 0.45        # higher floor: only strong semantic matches
+  global_threshold_max: 0.90
+  hdbscan_min_cluster: 4            # legal topics need more examples to form a cluster
+  hdbscan_min_samples: 3
+  hdbscan_metric: "euclidean"
+  louvain_resolution: 1.2           # more granular communities for legal sub-topics
+  louvain_edge_threshold: 0.55
+
+phase4:
+  top_n_per_cluster: 6              # legal summaries need more supporting context
+  max_bridges: 3
+  min_sent_words: 8                 # short legal fragments are rarely standalone
+  max_line_width: 120
+  pagerank_damping: 0.85
+  include_noise: false              # noise cluster in legal docs is usually OCR garbage
+
+phase5:
+  embed_model_name: "all-mpnet-base-v2"
+  rerank_model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+  default_top_k: 8
+  faiss_nprobe: 8
+  faiss_nlist: 64
+  rerank_fetch_mult: 5
+  default_alpha: 0.6                # weight semantic match higher than graph position
+  default_approx_k: 0
+  console_width: 96
+  theme_dict_path: "configs/themes_legal.json"

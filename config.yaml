@@ -1,0 +1,156 @@
+# =============================================================================
+# config.yaml — Pipeline Configuration
+#
+# All tuneable parameters live here. The Python source files are untouched
+# by domain changes. To run the pipeline on a different corpus, either edit
+# this file directly or point the pipeline at a different YAML profile:
+#
+#   python run_pipeline.py --config configs/legal.yaml
+#   python run_pipeline.py --config configs/clinical.yaml
+#
+# Parameter comments explain *why* each value exists, not just what it is,
+# so you can reason about changes rather than guess.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Paths — where data lives and where outputs go
+# -----------------------------------------------------------------------------
+paths:
+  data_dir: "data"                          # root for all inputs and outputs
+  raw_file_suffix: "_clean.txt"             # only files ending in this are processed
+
+  # Phase outputs (relative to data_dir)
+  output_sentences:    "output_v2.json"
+  output_embeddings:   "embeddings.npy"
+  output_manifest:     "embeddings_manifest.json"
+  output_graph:        "idea_graph.json"
+  output_clusters:     "cluster_summary.json"
+  output_summary_json: "summary.json"
+  output_summary_txt:  "summary.txt"
+  output_faiss_index:  "faiss.index"
+  output_batch:        "batch_results.jsonl"
+  export_dir:          "exports"
+
+
+# -----------------------------------------------------------------------------
+# pdf_to_txt — PDF extraction
+# -----------------------------------------------------------------------------
+pdf:
+  skip_first_page: true     # skip cover / TOC pages
+  ocr_dpi: 300              # DPI when rasterising scanned pages for OCR
+                            # 300 is the standard OCR minimum; 200 is faster but
+                            # loses accuracy on small fonts
+  min_text_chars: 20        # pages with fewer characters are treated as scanned
+  column_gap_ratio: 0.10    # fraction of page width that counts as a column gap
+                            # 0.10 works for standard 2-col academic layouts;
+                            # raise to 0.15 for narrow-margin legal documents
+
+
+# -----------------------------------------------------------------------------
+# phase1 — Data preprocessing / clause splitting
+# -----------------------------------------------------------------------------
+phase1:
+  min_words: 4              # clauses shorter than this are dropped as fragments
+                            # Literary prose:  4  (short clauses carry meaning)
+                            # Legal documents: 6  (need subject + predicate + object)
+                            # Support logs:    5  (short messages are often meaningful)
+
+
+# -----------------------------------------------------------------------------
+# phase2 — Sentence embeddings
+# -----------------------------------------------------------------------------
+phase2:
+  model_name: "all-mpnet-base-v2"   # sentence-transformers model identifier
+                                     # Alternatives:
+                                     #   all-MiniLM-L6-v2   — faster, lower quality
+                                     #   all-mpnet-base-v2  — best quality, default
+                                     #   paraphrase-multilingual-mpnet-base-v2  — multilingual
+
+  batch_size: 32            # sentences per GPU/CPU forward pass
+                            # Reduce to 16 if you hit OOM on mpnet
+
+  max_tokens: 384           # word count above which a sentence is chunked
+                            # mpnet's actual token limit is 512 subword tokens;
+                            # 384 words gives comfortable headroom for subword expansion
+
+  chunk_stride: 128         # sliding-window step size in words (overlap = max_tokens - stride)
+                            # 128/384 = 33% overlap — enough boundary context without
+                            # the 83% redundancy the old value of 64 caused
+
+
+# -----------------------------------------------------------------------------
+# phase3 — Idea graph construction + clustering
+# -----------------------------------------------------------------------------
+phase3:
+  # --- Neighbor search ---
+  top_k: 5                  # maximum neighbors per node (hard cap)
+                            # Raise to 8-10 for dense technical corpora where
+                            # many sentences are legitimately close
+
+  faiss_threshold: 5000     # corpus size above which FAISS ANN replaces exact O(N²)
+                            # 5000 sentences ≈ 95 MB float32 matrix — practical cutoff
+                            # on a machine with 8 GB RAM; lower to 2000 if RAM is tight
+
+  faiss_n_list: 100         # FAISS IVF Voronoi cells (index partitions)
+                            # Rule of thumb: sqrt(N) to 4*sqrt(N)
+  faiss_n_probe: 32         # cells searched per query — higher = more accurate, slower
+
+  # --- Dynamic per-node similarity threshold ---
+  dynamic_threshold_sigma: 0.5    # threshold = mean_sim − sigma * std_sim
+                                  # Lower = more edges. 0.5 is conservative;
+                                  # use 0.3 for sparse corpora to avoid isolation
+
+  global_threshold_min: 0.35      # hard floor — never accept weaker edges
+                                  # Literary:  0.35
+                                  # Legal:     0.45  (requires tighter semantic match)
+                                  # Clinical:  0.40
+
+  global_threshold_max: 0.90      # hard ceiling — always accept edges this strong
+                                  # (prevents pathological pruning of obvious links)
+
+  # --- HDBSCAN clustering ---
+  hdbscan_min_cluster: 3    # minimum sentences to form a cluster
+                            # Raise to 5 for large corpora (>10k sentences)
+  hdbscan_min_samples: 2    # controls noise sensitivity; raise to reduce noise points
+  hdbscan_metric: "euclidean"     # euclidean on L2-normalised vecs ≡ cosine distance
+
+  # --- Louvain fallback ---
+  louvain_resolution: 1.0         # higher = more, smaller communities
+  louvain_edge_threshold: 0.50    # only wire Louvain graph with strong edges
+
+
+# -----------------------------------------------------------------------------
+# phase4 — Structured summarization
+# -----------------------------------------------------------------------------
+phase4:
+  top_n_per_cluster: 4      # body sentences per cluster section (excl. centroid)
+                            # Raise for longer summaries; 4 is readable default
+
+  max_bridges: 2            # cross-cluster bridge sentences shown per cluster
+  min_sent_words: 6         # sentences shorter than this are merge candidates
+  max_line_width: 120       # plain-text output wrap width (characters)
+  pagerank_damping: 0.85    # standard PageRank damping factor; rarely needs changing
+  include_noise: true       # append the HDBSCAN noise cluster at the end of summary
+
+
+# -----------------------------------------------------------------------------
+# phase5 — Interactive query / Q&A
+# -----------------------------------------------------------------------------
+phase5:
+  embed_model_name: "all-mpnet-base-v2"           # must match phase2.model_name
+  rerank_model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+  default_top_k: 5          # results returned per query
+  faiss_nprobe: 8           # FAISS cells searched at query time (lower than phase3
+                            # because query latency matters more than recall here)
+  faiss_nlist: 64
+  rerank_fetch_mult: 4      # fetch top_k * this many candidates before re-ranking
+  default_alpha: 0.5        # hybrid score weight: alpha*semantic + (1-alpha)*graph
+  default_approx_k: 0       # centroid pre-filter clusters (0 = disabled)
+  console_width: 96         # output formatting width
+
+  # Path to a custom theme dictionary JSON, or null to use the built-in
+  # literary theme dictionary. Custom format:
+  #   { "liability": ["liable", "breach", "damages"], "negligence": [...] }
+  theme_dict_path: null

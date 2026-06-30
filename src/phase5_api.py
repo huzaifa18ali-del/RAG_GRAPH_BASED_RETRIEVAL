@@ -103,30 +103,40 @@ log = logging.getLogger("phase5")
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-EMBEDDINGS_PATH = os.path.join("data", "embeddings.npy")
-SENTENCES_PATH = os.path.join("data", "output_v2.json")
-IDEA_GRAPH_PATH = os.path.join("data", "idea_graph.json")
-CLUSTER_PATH = os.path.join("data", "cluster_summary.json")
-MANIFEST_PATH = os.path.join("data", "embeddings_manifest.json")
-FAISS_INDEX_PATH = os.path.join("data", "faiss.index")
-BATCH_OUTPUT_PATH = os.path.join("data", "batch_results.jsonl")
-EXPORT_DIR = os.path.join("data", "exports")
+from config_loader import load_config as _load_config
+_cfg = _load_config()
 
-EMBED_MODEL_NAME = "all-mpnet-base-v2"
-RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-DEFAULT_TOP_K = 5
-FAISS_NPROBE = 8
-FAISS_NLIST = 64
-RERANK_FETCH_MULT = 4
-DEFAULT_ALPHA = 0.5
-DEFAULT_APPROX_K = 0
-CONSOLE_WIDTH = 96
+EMBEDDINGS_PATH   = _cfg.paths.full("output_embeddings")
+SENTENCES_PATH    = _cfg.paths.full("output_sentences")
+IDEA_GRAPH_PATH   = _cfg.paths.full("output_graph")
+CLUSTER_PATH      = _cfg.paths.full("output_clusters")
+MANIFEST_PATH     = _cfg.paths.full("output_manifest")
+FAISS_INDEX_PATH  = _cfg.paths.full("output_faiss_index")
+BATCH_OUTPUT_PATH = _cfg.paths.full("output_batch")
+EXPORT_DIR        = os.path.join(_cfg.paths.data_dir, _cfg.paths.export_dir)
+
+EMBED_MODEL_NAME  = _cfg.phase5.embed_model_name
+RERANK_MODEL_NAME = _cfg.phase5.rerank_model_name
+DEFAULT_TOP_K     = _cfg.phase5.default_top_k
+FAISS_NPROBE      = _cfg.phase5.faiss_nprobe
+FAISS_NLIST       = _cfg.phase5.faiss_nlist
+RERANK_FETCH_MULT = _cfg.phase5.rerank_fetch_mult
+DEFAULT_ALPHA     = _cfg.phase5.default_alpha
+DEFAULT_APPROX_K  = _cfg.phase5.default_approx_k
+CONSOLE_WIDTH     = _cfg.phase5.console_width
 
 
 # ---------------------------------------------------------------------------
 # Theme dictionary — keyword clusters for thematic tagging
+#
+# DEFAULT: literary analysis themes (suitable for novels, poetry, prose).
+# OVERRIDE: pass --theme_dict path/to/themes.json on the CLI to load your own.
+# AUTO:     pass --auto_themes to extract themes from cluster centroids instead.
+#
+# Custom JSON format:
+#   { "liability": ["liable", "liability", "breach", "damages", ...], ... }
 # ---------------------------------------------------------------------------
-THEME_DICTIONARY: dict[str, list[str]] = {
+_LITERARY_THEME_DICTIONARY: dict[str, list[str]] = {
     "loneliness": [
         "lonely", "alone", "solitude", "solitary", "isolated", "isolation",
         "forsaken", "desolate", "abandoned", "forlorn", "secluded", "withdrawn",
@@ -179,11 +189,92 @@ THEME_DICTIONARY: dict[str, list[str]] = {
     ],
 }
 
-# Build a reverse lookup: word → set of theme names
-_WORD_TO_THEMES: dict[str, set[str]] = defaultdict(set)
-for _theme, _words in THEME_DICTIONARY.items():
-    for _w in _words:
-        _WORD_TO_THEMES[_w.lower()].add(_theme)
+# Active dictionary — replaced at startup by load_theme_dictionary()
+THEME_DICTIONARY: dict[str, list[str]] = _LITERARY_THEME_DICTIONARY
+
+
+def load_theme_dictionary(
+    custom_path: Optional[str] = None,
+    cluster_summary: Optional[list[dict]] = None,
+    auto_themes: bool = False,
+) -> dict[str, list[str]]:
+    """
+    Load the theme dictionary from one of three sources, in priority order:
+
+    1. Custom JSON file (--theme_dict path): highest priority, user-supplied.
+       Format: { "theme_name": ["keyword1", "keyword2", ...], ... }
+
+    2. Auto-extracted from cluster centroids (--auto_themes):
+       Extracts the top content words from each cluster's centroid sentence
+       and groups them as a "cluster_N" theme. Useful for non-literary docs.
+
+    3. Built-in literary dictionary (default): fallback for novels/prose.
+
+    Args:
+        custom_path    : Path to a JSON file with custom theme definitions.
+        cluster_summary: Cluster summary from Phase 3/4 (for auto-extraction).
+        auto_themes    : If True, extract themes from cluster centroids.
+
+    Returns:
+        Theme dictionary ready for use in THEME_DICTIONARY.
+    """
+    # 1. Custom JSON file
+    if custom_path and os.path.isfile(custom_path):
+        try:
+            with open(custom_path, encoding="utf-8") as f:
+                custom = json.load(f)
+            if isinstance(custom, dict) and all(isinstance(v, list) for v in custom.values()):
+                log.info("Theme dictionary loaded from: %s (%d themes)", custom_path, len(custom))
+                return custom
+            else:
+                log.warning("Invalid theme JSON format in %s — falling back.", custom_path)
+        except Exception as e:
+            log.warning("Could not load theme dict %s: %s — falling back.", custom_path, e)
+
+    # 2. Auto-extract from cluster centroids
+    if auto_themes and cluster_summary:
+        STOPWORDS = {
+            "the", "a", "an", "is", "it", "in", "of", "to", "and", "or",
+            "that", "this", "was", "are", "be", "for", "on", "with", "as",
+            "at", "by", "from", "but", "not", "he", "she", "they", "i",
+            "you", "we", "his", "her", "its", "my", "your", "our", "their",
+            "had", "has", "have", "been", "would", "could", "should", "will",
+        }
+        auto_dict: dict[str, list[str]] = {}
+        for cluster in cluster_summary:
+            if cluster.get("is_noise"):
+                continue
+            cid      = cluster.get("cluster_id", 0)
+            centroid = cluster.get("centroid_sentence", "")
+            words = [
+                w.lower().strip(".,;:!?\"'")
+                for w in centroid.split()
+                if len(w) > 3 and w.lower() not in STOPWORDS
+            ]
+            if words:
+                theme_name = f"cluster_{cid}"
+                auto_dict[theme_name] = list(dict.fromkeys(words))  # deduplicate, preserve order
+        if auto_dict:
+            log.info("Auto-extracted %d themes from cluster centroids.", len(auto_dict))
+            return auto_dict
+        log.warning("Auto-theme extraction produced no themes — falling back to literary dict.")
+
+    # 3. Default literary dictionary
+    log.info("Using built-in literary theme dictionary (%d themes).", len(_LITERARY_THEME_DICTIONARY))
+    return _LITERARY_THEME_DICTIONARY
+
+
+def _build_word_to_themes(theme_dict: dict[str, list[str]]) -> dict[str, set[str]]:
+    """Build reverse lookup: word → set of theme names."""
+    mapping: dict[str, set[str]] = defaultdict(set)
+    for theme, words in theme_dict.items():
+        for w in words:
+            mapping[w.lower()].add(theme)
+    return mapping
+
+
+# Build initial reverse lookup from the default dictionary
+_WORD_TO_THEMES: dict[str, set[str]] = _build_word_to_themes(THEME_DICTIONARY)
 
 
 # ---------------------------------------------------------------------------
@@ -252,6 +343,7 @@ class QueryIntent:
     target_paragraphs: list[int] = field(default_factory=list)
     target_entities: list[str] = field(default_factory=list)
     compare_items: list[str] = field(default_factory=list)
+    section_filter: Optional[str] = None  # topic/section constraint from "about X" phrases
 
 
 class QueryIntentDetector:
@@ -327,6 +419,16 @@ class QueryIntentDetector:
         r"(?:paragraph|para|chapter|section)\s*(\d+)", re.IGNORECASE
     )
 
+    # Extracts topic filter from "about X", "regarding X", "on X", "related to X"
+    # Used when summary/quote intent has a specific section constraint.
+    # e.g. "Summarize the section about liability" → section_filter="liability"
+    SECTION_FILTER_PATTERN = re.compile(
+        r"(?:about|regarding|on|related\s+to|concerning|covering|for)\s+"
+        r"(?:the\s+)?(?:section|part|clause|chapter|topic|subject)?\s*"
+        r"(?:of\s+)?([a-z][a-z\s]{2,40}?)(?:\s*[,?.!]|$)",
+        re.IGNORECASE,
+    )
+
     def detect(self, raw_query: str) -> QueryIntent:
         """Classify the user's query and extract structured parameters."""
         query_lower = raw_query.lower().strip()
@@ -335,6 +437,16 @@ class QueryIntentDetector:
         target_paragraphs = [
             int(m) for m in self.PARAGRAPH_PATTERN.findall(raw_query)
         ]
+
+        # Extract section/topic filter — "about liability", "regarding indemnity"
+        section_filter: Optional[str] = None
+        sec_match = self.SECTION_FILTER_PATTERN.search(query_lower)
+        if sec_match:
+            candidate = sec_match.group(1).strip()
+            # Only use if it's a meaningful content phrase (not a stopword)
+            _STOPWORDS = {"the", "a", "an", "this", "that", "it", "its", "them", "their"}
+            if candidate and candidate not in _STOPWORDS and len(candidate.split()) <= 5:
+                section_filter = candidate
 
         # Detect themes mentioned in the query
         target_themes = self._detect_themes_in_query(query_lower)
@@ -362,7 +474,13 @@ class QueryIntentDetector:
             intent_type = "theme"
 
         # Build optimised search query (strip command-like words)
-        search_query = self._build_search_query(raw_query, intent_type)
+        # If a section_filter was found, use it as the core search term
+        # so the embedding search targets the filtered topic specifically.
+        search_query = (
+            self._build_search_query(section_filter, intent_type)
+            if section_filter and intent_type in ("summary", "quote", "general")
+            else self._build_search_query(raw_query, intent_type)
+        )
 
         return QueryIntent(
             intent_type=intent_type,
@@ -371,6 +489,7 @@ class QueryIntentDetector:
             target_themes=target_themes,
             target_paragraphs=target_paragraphs,
             compare_items=compare_items,
+            section_filter=section_filter,
         )
 
     @staticmethod
@@ -2214,8 +2333,13 @@ def interactive_loop(
 
         # Step 1: Detect intent
         intent = intent_detector.detect(user_input)
-        log.info("Intent: %s  themes=%s  compare=%s", intent.intent_type,
-                 intent.target_themes, intent.compare_items)
+        log.info(
+            "Intent: %s  themes=%s  compare=%s  section=%s",
+            intent.intent_type,
+            intent.target_themes,
+            intent.compare_items,
+            intent.section_filter or "—",
+        )
 
         # Step 2: Encode the optimised search query
         qvec = encoder.encode(intent.search_query)
@@ -2329,6 +2453,23 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--batch_output", type=str, default=BATCH_OUTPUT_PATH)
     p.add_argument("--export_dir", type=str, default=EXPORT_DIR)
     p.add_argument(
+        "--theme_dict", type=str, default=None,
+        help=(
+            "Path to a custom theme dictionary JSON file. "
+            "Format: {\"theme_name\": [\"keyword1\", ...], ...}. "
+            "Use this when analysing non-literary documents (legal, technical, medical). "
+            "Example: --theme_dict themes/legal.json"
+        ),
+    )
+    p.add_argument(
+        "--auto_themes", action="store_true", default=False,
+        help=(
+            "Auto-extract themes from cluster centroid sentences instead of using "
+            "the built-in literary dictionary. Useful when the document domain is unknown. "
+            "Overridden by --theme_dict if both are supplied."
+        ),
+    )
+    p.add_argument(
         "--log_level", default="INFO", choices=["DEBUG", "INFO", "WARNING"],
     )
     return p.parse_args()
@@ -2360,6 +2501,15 @@ def main() -> None:
         else None
     )
 
+    # Load theme dictionary — custom file > auto-extract > literary default
+    global THEME_DICTIONARY, _WORD_TO_THEMES
+    THEME_DICTIONARY = load_theme_dictionary(
+        custom_path=args.theme_dict,
+        cluster_summary=cluster_summary,
+        auto_themes=args.auto_themes,
+    )
+    _WORD_TO_THEMES = _build_word_to_themes(THEME_DICTIONARY)
+
     build_faiss = (args.backend == "faiss") and FAISS_AVAILABLE
 
     index = SentenceIndex(
@@ -2376,12 +2526,25 @@ def main() -> None:
 
     encoder = QueryEncoder(args.model)
 
+    # Warm-up: force tokenizer + model initialisation now so the first
+    # user query is fast. Without this the first encode() call pays the
+    # full model-init cost (~600-800 ms) while the user waits for a response.
+    log.info("Warming up encoder…")
+    encoder.encode("warm up")
+    log.info("Encoder ready.")
+
     reranker: Optional[CrossEncoderReranker] = None
     if args.rerank:
         if CROSS_ENCODER_AVAILABLE:
+            # NOTE: cross-encoder/ms-marco-MiniLM-L-6-v2 is ~80 MB.
+            # It is downloaded from HuggingFace Hub on first use and cached.
+            # Install dependency: pip install sentence-transformers
+            log.info("Loading cross-encoder reranker (%s)…", RERANK_MODEL_NAME)
             reranker = CrossEncoderReranker(alpha=args.alpha)
+            log.info("Reranker ready.")
         else:
             log.warning("CrossEncoder not available — re-ranking disabled.")
+            log.warning("Install with: pip install sentence-transformers")
 
     # Initialise enhanced components
     analyser = SentimentThemeAnalyser()
