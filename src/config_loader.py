@@ -84,9 +84,9 @@ class Phase2Config:
 @dataclass
 class Phase3Config:
     top_k:                    int   = 5
-    faiss_threshold:          int   = 5000
-    faiss_n_list:             int   = 100
-    faiss_n_probe:            int   = 32
+    hnsw_m:                   int   = 32
+    hnsw_ef_construction:     int   = 200
+    hnsw_ef_search:           int   = 64
     dynamic_threshold_sigma:  float = 0.5
     global_threshold_min:     float = 0.35
     global_threshold_max:     float = 0.90

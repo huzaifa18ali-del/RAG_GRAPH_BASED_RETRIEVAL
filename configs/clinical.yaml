@@ -40,9 +40,9 @@ phase2:
 
 phase3:
   top_k: 5
-  faiss_threshold: 5000
-  faiss_n_list: 100
-  faiss_n_probe: 32
+  hnsw_m: 32
+  hnsw_ef_construction: 200
+  hnsw_ef_search: 64
   dynamic_threshold_sigma: 0.5
   global_threshold_min: 0.40        # slightly higher than literary; med terms are precise
   global_threshold_max: 0.90

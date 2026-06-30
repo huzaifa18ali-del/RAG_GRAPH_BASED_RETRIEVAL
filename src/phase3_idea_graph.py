@@ -4,22 +4,36 @@ phase3_idea_graph.py
 
 Phase 3 of the NLP pipeline: Build an idea graph with intelligent clustering.
 
-Loads sentence embeddings and original sentence metadata, computes pairwise
-cosine similarity, applies dynamic per-node thresholding, detects topic
-clusters via HDBSCAN (with Louvain as fallback), computes per-cluster
-centrality metrics, and saves the enriched graph as JSON.
+Loads sentence embeddings and original sentence metadata, builds a FAISS
+HNSW approximate-nearest-neighbor index over the (L2-normalised) embeddings,
+applies dynamic per-node thresholding, detects topic clusters via HDBSCAN
+(with Louvain as fallback, built from HNSW-derived edges), computes
+per-cluster centrality metrics, and saves the enriched graph as JSON.
+
+Milestone 2 (structural hardening): there is no brute-force O(N^2)
+cosine_similarity path any more, at any corpus size. Every neighbor lookup —
+clustering edges, graph edges, floor calibration — is served by a single
+FAISS HNSW index built once per run.
 """
 
 import json
+import logging
 import os
 import warnings
 from typing import Optional
 
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
 
-# --- Optional heavy deps (graceful fallback if missing) ---
+log = logging.getLogger("phase3")
+if not log.handlers:
+    logging.basicConfig(
+        format="%(asctime)s  %(levelname)-8s  %(message)s",
+        datefmt="%H:%M:%S",
+        level=logging.INFO,
+    )
+
+# --- Optional clustering backends (graceful fallback if missing) ---
 try:
     import hdbscan
     HDBSCAN_AVAILABLE = True
@@ -35,13 +49,18 @@ except ImportError:
     LOUVAIN_AVAILABLE = False
     warnings.warn("networkx / python-louvain not installed — cluster step will be skipped.")
 
+# --- FAISS is now a HARD requirement ---
+# Milestone 2 removes the exact O(N^2) cosine_similarity fallback entirely,
+# so there is no longer a code path that works without FAISS installed.
 try:
     import faiss
     FAISS_AVAILABLE = True
-except ImportError:
+except ImportError as exc:
     FAISS_AVAILABLE = False
-    # FAISS not required — falls back to exact O(N²) dot product.
-    # Install with: pip install faiss-cpu   (or faiss-gpu for CUDA)
+    raise ImportError(
+        "faiss is required by phase3_idea_graph.py — there is no brute-force "
+        "fallback. Install with: pip install faiss-cpu  (or faiss-gpu for CUDA)"
+    ) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -68,9 +87,9 @@ HDBSCAN_METRIC          = _cfg.phase3.hdbscan_metric
 LOUVAIN_RESOLUTION      = _cfg.phase3.louvain_resolution
 LOUVAIN_EDGE_THRESHOLD  = _cfg.phase3.louvain_edge_threshold
 
-FAISS_THRESHOLD         = _cfg.phase3.faiss_threshold
-FAISS_N_PROBE           = _cfg.phase3.faiss_n_probe
-FAISS_N_LIST            = _cfg.phase3.faiss_n_list
+HNSW_M                  = _cfg.phase3.hnsw_m
+HNSW_EF_CONSTRUCTION    = _cfg.phase3.hnsw_ef_construction
+HNSW_EF_SEARCH          = _cfg.phase3.hnsw_ef_search
 
 
 # ---------------------------------------------------------------------------
@@ -104,101 +123,97 @@ def load_manifest(filepath: str) -> Optional[list[dict]]:
 # Similarity — exact (small corpora) and FAISS ANN (large corpora)
 # ---------------------------------------------------------------------------
 
-def compute_similarity_matrix_exact(embeddings: np.ndarray) -> np.ndarray:
-    """
-    Full pairwise cosine similarity via matrix multiply.
+# ---------------------------------------------------------------------------
+# Similarity — FAISS HNSW only (no brute-force path, any corpus size)
+# ---------------------------------------------------------------------------
 
-    Time:   O(N² · D)
-    Memory: O(N²) float32  — 5k sentences ≈ 95 MB, 10k ≈ 380 MB.
-    Use for N < FAISS_THRESHOLD.
-    """
-    print("Computing similarity matrix (exact O(N²))…")
-    normed = normalize(embeddings, norm="l2")
-    sim    = (normed @ normed.T).astype(np.float32)
-    np.fill_diagonal(sim, 0.0)
-    print(f"Similarity matrix  : {sim.shape}  ({sim.nbytes / 1e6:.1f} MB)")
-    return sim
-
-
-def compute_neighbors_faiss(
+def build_hnsw_index(
     embeddings: np.ndarray,
-    top_k: int = TOP_K,
-    n_list: int = FAISS_N_LIST,
-    n_probe: int = FAISS_N_PROBE,
-) -> tuple[np.ndarray, np.ndarray]:
+    m: int = HNSW_M,
+    ef_construction: int = HNSW_EF_CONSTRUCTION,
+) -> "faiss.IndexHNSWFlat":
     """
-    Approximate nearest-neighbor search with FAISS IVF-Flat index.
+    Build a FAISS HNSW index over L2-normalised embeddings.
 
-    Instead of building the full N×N matrix, FAISS retrieves only the
-    top_k+1 nearest neighbors per query using an inverted-file index.
-    This is O(N · sqrt(N) · D) time and O(N · top_k) memory — tractable
-    for corpora up to hundreds of thousands of sentences.
+    Metric: METRIC_INNER_PRODUCT. Embeddings are unit-normalised by Phase 2
+    (normalize_embeddings=True in generate_embeddings), so inner product is
+    exactly cosine similarity — no separate distance-to-similarity conversion
+    is needed anywhere downstream.
 
     Args:
-        embeddings : L2-normalised float32 array, shape (N, D).
-        top_k      : Number of neighbors to retrieve per query.
-        n_list     : Number of Voronoi cells. Rule: sqrt(N) to 4·sqrt(N).
-        n_probe    : Cells searched per query. Higher → more accurate, slower.
+        embeddings:      float32 array, shape (N, D). Assumed L2-normalised.
+        m:               HNSW graph connectivity (neighbors per node).
+        ef_construction: candidate list size during build — quality/build-time knob.
 
     Returns:
-        distances  : (N, top_k+1) float32 — cosine similarities (since embeddings
-                     are L2-normalised, inner product == cosine similarity).
-        indices    : (N, top_k+1) int64   — neighbor indices.
-        (The +1 is because FAISS includes the query itself as neighbor 0.)
+        A populated faiss.IndexHNSWFlat.
+
+    Raises:
+        RuntimeError: if index construction fails (e.g. malformed embeddings).
     """
-    print(f"Computing neighbors via FAISS IVF (n_list={n_list}, n_probe={n_probe})…")
     n, d = embeddings.shape
+    try:
+        vecs = np.ascontiguousarray(embeddings.astype(np.float32))
+        # Defensive re-normalisation — guards against upstream callers passing
+        # raw (non-unit) vectors, which would silently break the cosine ≡ IP identity.
+        vecs = normalize(vecs, norm="l2").astype(np.float32)
 
-    # Adaptive n_list: FAISS requires n_list < n and recommends n_list ≤ sqrt(n)
-    n_list  = min(n_list, max(1, int(n ** 0.5)))
-    n_probe = min(n_probe, n_list)
-
-    # Ensure contiguous float32 — FAISS is strict about this
-    vecs = np.ascontiguousarray(embeddings.astype(np.float32))
-
-    # Inner-product index on L2-normalised vectors == cosine similarity
-    quantizer = faiss.IndexFlatIP(d)
-    index     = faiss.IndexIVFFlat(quantizer, d, n_list, faiss.METRIC_INNER_PRODUCT)
-    index.nprobe = n_probe
-
-    index.train(vecs)
-    index.add(vecs)
-
-    k = min(top_k + 1, n)   # +1 to account for self-match at rank 0
-    distances, indices = index.search(vecs, k)
-
-    print(f"FAISS search done  : {n} queries, top-{k} neighbors each")
-    return distances, indices
+        index = faiss.IndexHNSWFlat(d, m, faiss.METRIC_INNER_PRODUCT)
+        index.hnsw.efConstruction = ef_construction
+        index.add(vecs)
+        log.info(
+            "HNSW index built: %d vectors, dim=%d, M=%d, efConstruction=%d",
+            n, d, m, ef_construction,
+        )
+        return index
+    except Exception as exc:
+        raise RuntimeError(f"Failed to build FAISS HNSW index: {exc}") from exc
 
 
-def compute_similarity(
+def compute_neighbors_hnsw(
     embeddings: np.ndarray,
     top_k: int = TOP_K,
-    threshold: int = FAISS_THRESHOLD,
-) -> tuple[Optional[np.ndarray], Optional[tuple[np.ndarray, np.ndarray]]]:
+    m: int = HNSW_M,
+    ef_construction: int = HNSW_EF_CONSTRUCTION,
+    ef_search: int = HNSW_EF_SEARCH,
+) -> tuple[np.ndarray, np.ndarray]:
     """
-    Route similarity computation to exact or FAISS based on corpus size.
+    Build the HNSW index and run a top-k self-search in one pass.
+
+    This is the single neighbor-search call reused for floor calibration,
+    Louvain edge construction, and final graph construction — it is run
+    exactly once per pipeline execution.
+
+    Args:
+        embeddings:      L2-normalised float32 array, shape (N, D).
+        top_k:           Neighbors to retrieve per query (hard cap on graph degree).
+        m, ef_construction: passed through to build_hnsw_index.
+        ef_search:       Candidate list size at query time. Raised to at least
+                          top_k+1 automatically — a smaller value would silently
+                          truncate recall below what top_k promises.
 
     Returns:
-        (sim_matrix, None)          if exact path taken  (N < threshold or no FAISS)
-        (None, (distances, indices)) if FAISS path taken  (N ≥ threshold and FAISS available)
+        similarities : (N, top_k+1) float32 — cosine similarities, self at rank 0.
+        indices      : (N, top_k+1) int64   — neighbor sentence indices.
 
-    Callers must handle both return shapes — see build_idea_graph_routed().
+    Raises:
+        RuntimeError: if the search fails after a successfully built index.
     """
-    n = len(embeddings)
-    use_faiss = FAISS_AVAILABLE and n >= threshold
+    n, _ = embeddings.shape
+    index = build_hnsw_index(embeddings, m=m, ef_construction=ef_construction)
 
-    if use_faiss:
-        print(f"Corpus size {n} ≥ {threshold} — using FAISS ANN (install faiss-cpu if missing).")
-        return None, compute_neighbors_faiss(embeddings, top_k=top_k)
-    else:
-        if n >= threshold and not FAISS_AVAILABLE:
-            warnings.warn(
-                f"Corpus has {n} sentences (≥ {threshold}) but FAISS is not installed. "
-                "Falling back to exact O(N²) similarity — this may use "
-                f"{n*n*4/1e6:.0f} MB of memory. Install faiss-cpu to avoid this."
-            )
-        return compute_similarity_matrix_exact(embeddings), None
+    # efSearch must be >= k or HNSW silently returns fewer/worse candidates.
+    index.hnsw.efSearch = max(ef_search, top_k + 1)
+
+    try:
+        vecs = np.ascontiguousarray(normalize(embeddings, norm="l2").astype(np.float32))
+        k = min(top_k + 1, n)   # +1 — HNSW includes the query itself as neighbor 0
+        similarities, indices = index.search(vecs, k)
+        log.info("HNSW search done: %d queries, top-%d neighbors each (efSearch=%d)",
+                  n, k, index.hnsw.efSearch)
+        return similarities, indices
+    except Exception as exc:
+        raise RuntimeError(f"FAISS HNSW search failed: {exc}") from exc
 
 
 # ---------------------------------------------------------------------------
@@ -241,14 +256,13 @@ def dynamic_threshold(
 
 
 def calibrate_floor(
-    sim_matrix: Optional[np.ndarray] = None,
-    faiss_distances: Optional[np.ndarray] = None,
+    hnsw_similarities: np.ndarray,
     percentile: float = 10.0,
     hard_minimum: float = 0.20,
 ) -> float:
     """
     Auto-calibrate the similarity floor from the actual distribution of
-    positive similarities in this document.
+    positive similarities returned by the HNSW neighbor search.
 
     The hardcoded GLOBAL_THRESHOLD_MIN = 0.35 was tuned on one literary
     document. A legal contract, technical manual, or academic paper has a
@@ -256,56 +270,35 @@ def calibrate_floor(
     the same pipeline works across domains without manual tuning.
 
     Strategy:
-        Set the floor at the Nth percentile of all positive similarities.
-        ~N% of all edges are structurally excluded as noise, adapting to
-        whatever the corpus density actually is.
+        Set the floor at the Nth percentile of all positive similarities
+        already retrieved by the HNSW top-k search (no extra computation —
+        this reuses the same neighbor search used for graph construction).
 
     Args:
-        sim_matrix      : Full N×N similarity matrix (exact path).
-        faiss_distances : FAISS neighbor distances (N, K) (FAISS path).
-                          Provide exactly one of these two.
-        percentile      : Percentile of positive similarities to use as floor.
-                          10.0 = the bottom 10% of edges are excluded.
-        hard_minimum    : Absolute floor — never go below this regardless of
-                          corpus (0.20 = below this is noise in any embedding
-                          space produced by sentence-transformers).
+        hnsw_similarities : (N, K) cosine similarities from compute_neighbors_hnsw.
+        percentile         : Percentile of positive similarities to use as floor.
+                              10.0 = the bottom 10% of edges are excluded.
+        hard_minimum       : Absolute floor — never go below this regardless of
+                              corpus (0.20 = below this is noise in any embedding
+                              space produced by sentence-transformers).
 
     Returns:
         Calibrated floor value in [hard_minimum, GLOBAL_THRESHOLD_MAX].
     """
-    if sim_matrix is not None:
-        n = sim_matrix.shape[0]
-        if n <= 3000:
-            # Small enough — use full upper triangle
-            positives = sim_matrix[np.triu_indices(n, k=1)]
-            positives = positives[positives > 0.0]
-        else:
-            # Large matrix — random sample 500k pairs for speed
-            rng  = np.random.default_rng(42)
-            rows = rng.integers(0, n, size=500_000)
-            cols = rng.integers(0, n, size=500_000)
-            mask = rows != cols
-            positives = sim_matrix[rows[mask], cols[mask]]
-            positives = positives[positives > 0.0]
-
-    elif faiss_distances is not None:
-        positives = faiss_distances[faiss_distances > 0.0].ravel()
-
-    else:
-        print(f"  calibrate_floor: no similarity data — using hardcoded floor {GLOBAL_THRESHOLD_MIN:.4f}")
-        return GLOBAL_THRESHOLD_MIN
+    positives = hnsw_similarities[hnsw_similarities > 0.0].ravel()
 
     if positives.size == 0:
-        print(f"  calibrate_floor: no positive similarities — using hardcoded floor {GLOBAL_THRESHOLD_MIN:.4f}")
+        log.warning("calibrate_floor: no positive similarities — using hardcoded floor %.4f",
+                    GLOBAL_THRESHOLD_MIN)
         return GLOBAL_THRESHOLD_MIN
 
     calibrated = float(np.percentile(positives, percentile))
     calibrated = max(calibrated, hard_minimum)
     calibrated = min(calibrated, GLOBAL_THRESHOLD_MAX)
 
-    print(
-        f"  calibrate_floor: p{percentile:.0f} of {positives.size:,} positive sims "
-        f"= {calibrated:.4f}  (range [{positives.min():.4f}, {positives.max():.4f}])"
+    log.info(
+        "calibrate_floor: p%.0f of %s positive sims = %.4f  (range [%.4f, %.4f])",
+        percentile, f"{positives.size:,}", calibrated, positives.min(), positives.max(),
     )
     return calibrated
 
@@ -341,46 +334,63 @@ def cluster_hdbscan(embeddings: np.ndarray) -> np.ndarray:
 
 
 def cluster_louvain(
-    sim_matrix: np.ndarray,
+    n_nodes: int,
+    hnsw_similarities: np.ndarray,
+    hnsw_indices: np.ndarray,
     edge_threshold: float = LOUVAIN_EDGE_THRESHOLD,
     resolution: float = LOUVAIN_RESOLUTION,
 ) -> np.ndarray:
     """
     Cluster nodes with the Louvain community-detection algorithm.
 
-    Louvain works on a graph rather than the raw embedding space, so it
-    respects the topology you've already built (useful when embeddings alone
-    are noisy but graph structure is informative).
+    Louvain works on a graph rather than the raw embedding space. Edges are
+    built directly from the HNSW top-k neighbor search — there is no full
+    similarity matrix to threshold against, so any pair not surfaced by the
+    HNSW search (i.e. not in either node's top-k) is simply never considered
+    as a candidate edge. This is a deliberate approximation: HNSW recall is
+    high enough that strong edges are reliably found from either endpoint.
 
     Args:
-        sim_matrix:      Full pairwise similarity matrix.
-        edge_threshold:  Only wire the Louvain graph with edges above this.
-        resolution:      Higher = more, smaller communities.
+        n_nodes:         Total number of nodes (embeddings.shape[0]).
+        hnsw_similarities: (N, K) cosine similarities from compute_neighbors_hnsw.
+        hnsw_indices:     (N, K) corresponding neighbor indices.
+        edge_threshold:   Only wire the Louvain graph with edges above this.
+        resolution:       Higher = more, smaller communities.
 
     Returns:
         Integer label array of length N.
     """
-    print("Clustering with Louvain…")
+    log.info("Clustering with Louvain (HNSW-derived edges)…")
     G = nx.Graph()
-    n = sim_matrix.shape[0]
-    G.add_nodes_from(range(n))
+    G.add_nodes_from(range(n_nodes))
 
-    rows, cols = np.where(sim_matrix >= edge_threshold)
-    for r, c in zip(rows, cols):
-        if r < c:  # undirected — add once
-            G.add_edge(int(r), int(c), weight=float(sim_matrix[r, c]))
+    for i in range(n_nodes):
+        for sim_val, j in zip(hnsw_similarities[i], hnsw_indices[i]):
+            j = int(j)
+            if j == i or j < 0:
+                continue
+            score = float(sim_val)
+            if score < edge_threshold:
+                continue
+            a, b = (i, j) if i < j else (j, i)
+            if G.has_edge(a, b):
+                if score > G[a][b]["weight"]:
+                    G[a][b]["weight"] = score
+            else:
+                G.add_edge(a, b, weight=score)
 
     partition = louvain_partition(G, weight="weight", resolution=resolution)
-    labels    = np.array([partition[i] for i in range(n)], dtype=int)
+    labels    = np.array([partition.get(i, -1) for i in range(n_nodes)], dtype=int)
 
     n_clusters = len(set(labels))
-    print(f"  Louvain → {n_clusters} communities")
+    log.info("Louvain → %d communities (%d edges)", n_clusters, G.number_of_edges())
     return labels
 
 
 def assign_clusters(
     embeddings: np.ndarray,
-    sim_matrix: np.ndarray,
+    hnsw_similarities: np.ndarray,
+    hnsw_indices: np.ndarray,
 ) -> np.ndarray:
     """
     Pick the best available clustering algorithm.
@@ -390,7 +400,7 @@ def assign_clusters(
     if HDBSCAN_AVAILABLE:
         return cluster_hdbscan(embeddings)
     if LOUVAIN_AVAILABLE:
-        return cluster_louvain(sim_matrix)
+        return cluster_louvain(len(embeddings), hnsw_similarities, hnsw_indices)
 
     warnings.warn("No clustering backend available — all nodes assigned cluster 0.")
     return np.zeros(len(embeddings), dtype=int)
@@ -401,7 +411,8 @@ def assign_clusters(
 # ---------------------------------------------------------------------------
 
 def build_idea_graph(
-    sim_matrix: np.ndarray,
+    hnsw_similarities: np.ndarray,
+    hnsw_indices: np.ndarray,
     sentence_records: list[dict],
     cluster_labels: np.ndarray,
     manifest: Optional[list[dict]],
@@ -409,103 +420,41 @@ def build_idea_graph(
     calibrated_floor: float = GLOBAL_THRESHOLD_MIN,
 ) -> list[dict]:
     """
-    Build idea graph from a full similarity matrix (exact path, N < FAISS_THRESHOLD).
-    See build_idea_graph_routed() for the entry point that handles both paths.
+    Build the idea graph from HNSW ANN results — the only graph-building
+    path now (Milestone 2 removed the exact O(N^2) path entirely).
+
+    HNSW returns pre-selected top-k neighbors so no full matrix is ever
+    materialised, at any corpus size. Dynamic threshold is computed only
+    over the returned neighbor similarities (not a full row), which is a
+    reasonable approximation since HNSW recall is high and the global
+    mean/std of similarities changes slowly with corpus size.
 
     Args:
-        calibrated_floor: Floor computed by calibrate_floor() for this document.
-                          Replaces the hardcoded GLOBAL_THRESHOLD_MIN so the
-                          threshold adapts to the actual similarity distribution.
-    """
-    n     = len(sentence_records)
-    graph = []
-    print(f"Building idea graph — exact path (top_k={top_k}, floor={calibrated_floor:.4f})…")
-
-    for i in range(n):
-        sims   = sim_matrix[i].copy()
-        thresh = dynamic_threshold(sims, floor=calibrated_floor)
-
-        num_candidates = min(top_k * 3, n - 1)
-        if num_candidates < 1:
-            candidate_idx = np.array([], dtype=int)
-        else:
-            candidate_idx = np.argpartition(sims, -num_candidates)[-num_candidates:]
-            candidate_idx = candidate_idx[np.argsort(sims[candidate_idx])[::-1]]
-
-        neighbors = []
-        for j in candidate_idx:
-            if int(j) == i:
-                continue
-            score = float(sims[j])
-            if score < thresh:
-                continue
-            neighbors.append({
-                "sentence_id":   int(j),
-                "similarity":    round(score, 6),
-                "cross_cluster": bool(cluster_labels[i] != cluster_labels[j]),
-            })
-            if len(neighbors) >= top_k:
-                break
-
-        chunk_meta = manifest[i] if manifest else {}
-        graph.append({
-            "sentence_id":    i,
-            "sentence":       sentence_records[i]["sentence"],
-            "paragraph_id":   sentence_records[i].get("paragraph_id"),
-            "cluster_id":     int(cluster_labels[i]),
-            "threshold_used": round(thresh, 6),
-            "chunk_index":    chunk_meta.get("chunk_index", 0),
-            "total_chunks":   chunk_meta.get("total_chunks", 1),
-            "neighbors":      neighbors,
-        })
-
-    return graph
-
-
-def build_idea_graph_faiss(
-    faiss_distances: np.ndarray,
-    faiss_indices: np.ndarray,
-    sentence_records: list[dict],
-    cluster_labels: np.ndarray,
-    manifest: Optional[list[dict]],
-    top_k: int = TOP_K,
-    calibrated_floor: float = GLOBAL_THRESHOLD_MIN,
-) -> list[dict]:
-    """
-    Build idea graph from FAISS ANN results (large corpus path, N ≥ FAISS_THRESHOLD).
-
-    FAISS returns pre-selected top-k neighbors so we skip the full matrix entirely.
-    Dynamic threshold is computed only over the returned neighbor similarities
-    (not the full row), which is a reasonable approximation for large N since
-    the global mean/std of similarities changes slowly with corpus size.
-
-    Args:
-        faiss_distances  : (N, K) cosine similarities from FAISS search.
-        faiss_indices    : (N, K) corresponding sentence indices.
-        sentence_records : Original sentence metadata.
-        cluster_labels   : Per-node cluster assignment.
-        manifest         : Optional Phase 2 chunk manifest.
-        top_k            : Hard cap on neighbors per node.
-        calibrated_floor : Document-adaptive floor from calibrate_floor().
+        hnsw_similarities : (N, K) cosine similarities from compute_neighbors_hnsw.
+        hnsw_indices       : (N, K) corresponding sentence indices.
+        sentence_records   : Original sentence metadata.
+        cluster_labels      : Per-node cluster assignment.
+        manifest            : Optional Phase 2 chunk manifest.
+        top_k               : Hard cap on neighbors per node.
+        calibrated_floor    : Document-adaptive floor from calibrate_floor().
 
     Returns:
-        List of enriched graph-node dicts (same schema as build_idea_graph).
+        List of enriched graph-node dicts.
     """
     n     = len(sentence_records)
     graph = []
-    print(f"Building idea graph — FAISS path (top_k={top_k}, floor={calibrated_floor:.4f})…")
+    log.info("Building idea graph (HNSW, top_k=%d, floor=%.4f)…", top_k, calibrated_floor)
 
     for i in range(n):
-        # FAISS returns self as the first neighbor (distance ≈ 1.0) — skip it
-        raw_sims = faiss_distances[i]
-        raw_idxs = faiss_indices[i]
+        raw_sims = hnsw_similarities[i]
+        raw_idxs = hnsw_indices[i]
 
-        # Filter out self-match and invalid indices (-1 from FAISS padding)
+        # Filter out self-match and invalid indices (-1 from HNSW padding when
+        # the corpus is smaller than top_k+1).
         valid_mask = (raw_idxs != i) & (raw_idxs >= 0)
         sims = raw_sims[valid_mask].astype(np.float32)
         idxs = raw_idxs[valid_mask]
 
-        # Dynamic threshold over the available neighbor similarities
         thresh = dynamic_threshold(sims, floor=calibrated_floor) if len(sims) > 0 else calibrated_floor
 
         neighbors = []
@@ -536,73 +485,22 @@ def build_idea_graph_faiss(
     return graph
 
 
-def build_idea_graph_routed(
-    embeddings: np.ndarray,
-    sentence_records: list[dict],
-    cluster_labels: np.ndarray,
-    manifest: Optional[list[dict]],
-    top_k: int = TOP_K,
-    precomputed_sim_matrix: Optional[np.ndarray] = None,
-) -> tuple[list[dict], Optional[np.ndarray]]:
-    """
-    Entry point that routes to exact or FAISS graph builder based on corpus size.
-
-    Args:
-        precomputed_sim_matrix: Pass the matrix already computed by cluster_louvain()
-                                to avoid computing it a second time on the Louvain path.
-                                When provided, skips compute_similarity() entirely.
-
-    Returns:
-        graph      : the built idea graph
-        sim_matrix : full similarity matrix if exact path was taken, else None
-                     (downstream callers that need sim_matrix must handle None)
-    """
-    if precomputed_sim_matrix is not None:
-        # Louvain path: matrix was already computed for clustering — reuse it.
-        sim_matrix   = precomputed_sim_matrix
-        faiss_result = None
-    else:
-        sim_matrix, faiss_result = compute_similarity(embeddings, top_k=top_k)
-
-    # Calibrate floor ONCE from the real similarity distribution of this document.
-    calibrated_floor = calibrate_floor(
-        sim_matrix=sim_matrix,
-        faiss_distances=faiss_result[0] if faiss_result is not None else None,
-    )
-
-    if faiss_result is not None:
-        distances, indices = faiss_result
-        graph = build_idea_graph_faiss(
-            distances, indices, sentence_records, cluster_labels, manifest,
-            top_k=top_k, calibrated_floor=calibrated_floor,
-        )
-        return graph, None   # no full sim_matrix available on FAISS path
-    else:
-        graph = build_idea_graph(
-            sim_matrix, sentence_records, cluster_labels, manifest,
-            top_k=top_k, calibrated_floor=calibrated_floor,
-        )
-        return graph, sim_matrix
-
-
 # ---------------------------------------------------------------------------
 # Per-cluster centrality
 # ---------------------------------------------------------------------------
 
 def compute_cluster_centrality(
     graph: list[dict],
-    sim_matrix: Optional[np.ndarray],
     cluster_labels: np.ndarray,
 ) -> dict[int, list[dict]]:
     """
     Compute intra-cluster degree centrality for every node.
 
-    When sim_matrix is None (FAISS path), centrality is approximated from
-    the neighbor similarity scores already stored in each graph node — no
-    full matrix needed. When sim_matrix is available (exact path), the full
-    intra-cluster sub-matrix is used for higher accuracy.
+    Approximated entirely from the neighbor similarity scores already stored
+    in each graph node by build_idea_graph() — no full matrix is built at any
+    point in Phase 3 any more, so this is the only path.
     """
-    print("Computing per-cluster centrality…")
+    log.info("Computing per-cluster centrality…")
     unique_clusters = sorted(set(int(l) for l in cluster_labels))
     cluster_centrality: dict[int, list[dict]] = {}
 
@@ -616,32 +514,19 @@ def compute_cluster_centrality(
             }]
             continue
 
-        if sim_matrix is not None:
-            # Exact path — use full sub-matrix
-            idx  = np.array(members)
-            sub  = sim_matrix[np.ix_(idx, idx)]
-            np.fill_diagonal(sub, 0.0)
-            denom          = max(len(members) - 1, 1)
-            weighted_degree = sub.sum(axis=1) / denom
-            ranked = sorted(
-                zip(members, weighted_degree.tolist()),
-                key=lambda x: x[1], reverse=True,
-            )
-        else:
-            # FAISS path — approximate from stored neighbor similarities
-            member_set = set(members)
-            weighted_degree = {}
-            for i in members:
-                intra_sims = [
-                    nb["similarity"] for nb in graph[i]["neighbors"]
-                    if nb["sentence_id"] in member_set
-                ]
-                denom = max(len(members) - 1, 1)
-                weighted_degree[i] = sum(intra_sims) / denom
-            ranked = sorted(
-                weighted_degree.items(),
-                key=lambda x: x[1], reverse=True,
-            )
+        member_set = set(members)
+        weighted_degree = {}
+        for i in members:
+            intra_sims = [
+                nb["similarity"] for nb in graph[i]["neighbors"]
+                if nb["sentence_id"] in member_set
+            ]
+            denom = max(len(members) - 1, 1)
+            weighted_degree[i] = sum(intra_sims) / denom
+        ranked = sorted(
+            weighted_degree.items(),
+            key=lambda x: x[1], reverse=True,
+        )
 
         cluster_centrality[cid] = [
             {
@@ -751,12 +636,16 @@ def print_summary(
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """Phase 3 entry point: similarity → cluster → graph → centrality → save."""
+    """Phase 3 entry point: HNSW search → cluster → graph → centrality → save."""
 
     # 1. Load
-    embeddings       = load_embeddings(EMBEDDINGS_PATH)
-    sentence_records = load_sentences(SENTENCES_PATH)
-    manifest         = load_manifest(MANIFEST_PATH)
+    try:
+        embeddings       = load_embeddings(EMBEDDINGS_PATH)
+        sentence_records = load_sentences(SENTENCES_PATH)
+        manifest          = load_manifest(MANIFEST_PATH)
+    except (FileNotFoundError, OSError, json.JSONDecodeError) as exc:
+        log.error("Failed to load Phase 3 inputs: %s", exc)
+        raise
 
     # Validate and align all three data sources.
     # The authoritative length is len(embeddings) — if sentence_records or
@@ -777,10 +666,10 @@ def main() -> None:
         # deduplicated, leaving sentence_records 1 longer than embeddings.
         # Safe fix: truncate sentence_records to match embeddings.
         if abs(n_sent - n_emb) <= 5:
-            print(
-                f"⚠️  sentence_records ({n_sent}) vs embeddings ({n_emb}) — "
-                f"trimming sentence_records to {n_emb} (likely a blank/duplicate "
-                f"removed by Phase 2 deduplication)."
+            log.warning(
+                "sentence_records (%d) vs embeddings (%d) — trimming sentence_records "
+                "to %d (likely a blank/duplicate removed by Phase 2 deduplication).",
+                n_sent, n_emb, n_emb,
             )
             sentence_records = sentence_records[:n_emb]
         else:
@@ -791,47 +680,52 @@ def main() -> None:
             )
 
     n = len(embeddings)
-    print(f"\nCorpus size: {n} sentences")
-    if n >= FAISS_THRESHOLD:
-        print(f"  → Large corpus (≥ {FAISS_THRESHOLD}): "
-              f"{'FAISS ANN' if FAISS_AVAILABLE else 'exact (FAISS not installed)'}")
-    else:
-        print(f"  → Small corpus (< {FAISS_THRESHOLD}): exact similarity")
+    log.info("Corpus size: %d sentences", n)
 
-    # 2. Cluster — HDBSCAN needs embeddings not sim_matrix, so cluster first.
-    #    Louvain needs the full sim_matrix; we hold onto it so build_idea_graph_routed
-    #    can reuse it rather than computing it a second time (the double-compute bug).
-    sim_for_louvain: Optional[np.ndarray] = None
+    # 2. Single HNSW neighbor search — reused for floor calibration, optional
+    #    Louvain edges, and final graph construction. Computed exactly once.
+    try:
+        hnsw_similarities, hnsw_indices = compute_neighbors_hnsw(embeddings, top_k=TOP_K)
+    except RuntimeError as exc:
+        log.error("HNSW index/search failed — cannot continue Phase 3: %s", exc)
+        raise
 
+    calibrated_floor = calibrate_floor(hnsw_similarities)
+
+    # 3. Cluster — HDBSCAN operates on raw embeddings directly; Louvain builds
+    #    its graph from the same HNSW neighbor arrays computed above.
     if HDBSCAN_AVAILABLE:
         cluster_labels = cluster_hdbscan(embeddings)
     elif LOUVAIN_AVAILABLE:
-        # Louvain needs the sim_matrix — compute it once here and reuse below.
-        sim_for_louvain = compute_similarity_matrix_exact(embeddings)
-        cluster_labels  = cluster_louvain(sim_for_louvain)
+        cluster_labels = cluster_louvain(n, hnsw_similarities, hnsw_indices)
     else:
         warnings.warn("No clustering backend available — all nodes assigned cluster 0.")
         cluster_labels = np.zeros(n, dtype=int)
 
-    # 3. Build graph (routes to exact or FAISS internally).
-    #    On the Louvain path, pass sim_for_louvain so the matrix is not computed twice.
-    #    On all other paths it is None and build_idea_graph_routed computes it normally.
-    graph, sim_matrix = build_idea_graph_routed(
-        embeddings, sentence_records, cluster_labels, manifest,
-        top_k=TOP_K,
-        precomputed_sim_matrix=sim_for_louvain,
-    )
+    # 4. Build graph directly from the HNSW search results — no second search.
+    try:
+        graph = build_idea_graph(
+            hnsw_similarities, hnsw_indices, sentence_records, cluster_labels, manifest,
+            top_k=TOP_K, calibrated_floor=calibrated_floor,
+        )
+    except Exception as exc:
+        log.error("Idea graph construction failed: %s", exc)
+        raise
 
-    # 4. Per-cluster centrality (handles None sim_matrix gracefully)
-    cluster_centrality = compute_cluster_centrality(graph, sim_matrix, cluster_labels)
+    # 5. Per-cluster centrality (approximated from stored neighbor similarities)
+    cluster_centrality = compute_cluster_centrality(graph, cluster_labels)
     cluster_summary    = build_cluster_summary(cluster_centrality, cluster_labels)
 
-    # 5. Report
+    # 6. Report
     print_summary(graph, cluster_summary)
 
-    # 6. Persist — idea graph is machine-consumed (compact), cluster summary is human-readable (pretty)
-    save_json(graph,           OUTPUT_PATH,   label="Idea graph",      pretty=False)
-    save_json(cluster_summary, CLUSTERS_PATH, label="Cluster summary", pretty=True)
+    # 7. Persist — idea graph is machine-consumed (compact), cluster summary is human-readable (pretty)
+    try:
+        save_json(graph,           OUTPUT_PATH,   label="Idea graph",      pretty=False)
+        save_json(cluster_summary, CLUSTERS_PATH, label="Cluster summary", pretty=True)
+    except OSError as exc:
+        log.error("Failed to persist Phase 3 outputs: %s", exc)
+        raise
 
 
 if __name__ == "__main__":

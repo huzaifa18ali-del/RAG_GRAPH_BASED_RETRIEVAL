@@ -39,9 +39,9 @@ phase2:
 
 phase3:
   top_k: 8                          # statutes cross-reference heavily
-  faiss_threshold: 5000
-  faiss_n_list: 100
-  faiss_n_probe: 32
+  hnsw_m: 32
+  hnsw_ef_construction: 200
+  hnsw_ef_search: 96                # legal corpora favor recall over latency
   dynamic_threshold_sigma: 0.4      # tighter — legal concepts cluster precisely
   global_threshold_min: 0.45        # higher floor: only strong semantic matches
   global_threshold_max: 0.90

@@ -88,13 +88,16 @@ phase3:
                             # Raise to 8-10 for dense technical corpora where
                             # many sentences are legitimately close
 
-  faiss_threshold: 5000     # corpus size above which FAISS ANN replaces exact O(N²)
-                            # 5000 sentences ≈ 95 MB float32 matrix — practical cutoff
-                            # on a machine with 8 GB RAM; lower to 2000 if RAM is tight
-
-  faiss_n_list: 100         # FAISS IVF Voronoi cells (index partitions)
-                            # Rule of thumb: sqrt(N) to 4*sqrt(N)
-  faiss_n_probe: 32         # cells searched per query — higher = more accurate, slower
+  # --- FAISS HNSW index ---
+  # Milestone 2: replaces brute-force cosine_similarity (O(N^2)) and the old
+  # IVFFlat index entirely. HNSW is used for every corpus size — there is no
+  # more "exact path" — so memory stays O(N) regardless of corpus size.
+  hnsw_m:               32    # graph connectivity (neighbors per node in the HNSW graph)
+                              # 16-64 typical; higher = better recall, more memory/build time
+  hnsw_ef_construction: 200   # candidate list size during index build
+                              # higher = better graph quality, slower build (one-time cost)
+  hnsw_ef_search:       64    # candidate list size at query time
+                              # higher = better recall, slower search; must be >= top_k
 
   # --- Dynamic per-node similarity threshold ---
   dynamic_threshold_sigma: 0.5    # threshold = mean_sim − sigma * std_sim
