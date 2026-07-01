@@ -122,6 +122,26 @@ phase3:
   louvain_resolution: 1.0         # higher = more, smaller communities
   louvain_edge_threshold: 0.50    # only wire Louvain graph with strong edges
 
+  # --- Sequential / proximity edges ---
+  # Added alongside similarity edges so query-time PPR can "keep reading"
+  # contiguous text (e.g. a heading at clause N followed by descriptive body
+  # text at N+1..N+k) even when those clauses aren't semantically similar
+  # enough to each other to have earned a similarity edge on their own.
+  enable_sequential_edges: true          # master switch; false = old behaviour
+                                          # (similarity edges only)
+  sequential_window: 2                   # each clause links forward to the next
+                                          # N clauses in original document order
+                                          # (i -> i+1 .. i+window)
+  sequential_edge_weight: 0.6            # fixed weight for sequential edges — kept
+                                          # below global_threshold_min (0.35) so they
+                                          # never outrank a real semantic match, but
+                                          # non-zero so PageRank's weighted walk can
+                                          # still traverse them
+  enable_cross_paragraph_sequential: false  # if true, sequential edges may bridge
+                                          # paragraph_id boundaries; leave false —
+                                          # bridging sections reintroduces the noise
+                                          # dynamic thresholding was built to remove
+
 
 # -----------------------------------------------------------------------------
 # phase4 — Structured summarization
@@ -157,3 +177,78 @@ phase5:
   # literary theme dictionary. Custom format:
   #   { "liability": ["liable", "breach", "damages"], "negligence": [...] }
   theme_dict_path: null
+
+
+# -----------------------------------------------------------------------------
+# ppr — Dynamic query-time graph traversal (Personalized PageRank)
+# -----------------------------------------------------------------------------
+ppr:
+  seed_top_n: 8              # HNSW nearest-neighbor entry points seeded into the
+                              # personalization vector. More seeds = broader initial
+                              # coverage before the graph walk redistributes rank.
+
+  result_top_m: 8           # final number of top-ranked clauses returned as LLM context
+                              # Keep modest — this becomes the entire grounding context,
+                              # and larger contexts dilute the synthesis model's focus.
+
+  pagerank_alpha: 0.9       # damping factor for personalized PageRank
+                              # Same meaning as phase4.pagerank_damping but kept as its
+                              # own knob — phase4 tunes a static importance signal over
+                              # the WHOLE graph, this tunes a query-local walk that should
+                              # stay tightly anchored to the seed nodes. Do not conflate.
+
+  max_iter: 200               # PageRank power-iteration cap before giving up
+  tol: 1.0e-6                 # PageRank convergence tolerance
+
+  min_edge_weight: 0.0        # optional floor when building the traversal graph from
+                              # idea_graph.json edges (0.0 = use every stored edge as-is;
+                              # the edges were already thresholded once in Phase 3)
+
+  # --- Rule-based heading-context expansion ---
+  # PPR is a global ranking, so a heading-like clause can surface as a top
+  # result while the descriptive body text right after it never makes the
+  # cut (a moderate sequential-edge weight loses out to stronger similarity
+  # edges elsewhere in the graph). This deterministic, regex-based pass runs
+  # after personalized_pagerank_search() and pulls in the clauses that
+  # follow any top-ranked heading-like clause, regardless of its own PPR
+  # score. Expansion length is dynamic: it walks forward until it hits
+  # another heading-like clause (natural section boundary) or the hard cap.
+  enable_heading_expansion: true      # master switch; false = PPR results only
+  max_expansion_per_heading: 15       # HARD CEILING, not a fixed target — dynamic
+                                      # expansion (see expansion_stop_at_boundary)
+                                      # normally stops well short of this; it just
+                                      # guarantees expansion can never run unbounded
+  min_words_for_heading: 8            # word-count threshold for the short
+                                      # ALL-CAPS / Title Case heading check
+  expansion_stop_at_boundary: true    # stop as soon as another heading-like clause
+                                      # is hit, instead of always walking to the
+                                      # hard cap. false = old fixed-N behaviour,
+                                      # kept for rollback/comparison
+  min_expansion_before_boundary: 3    # ignore a heading-like clause as a boundary
+                                      # until at least this many clauses have
+                                      # already been pulled in — prevents frequent
+                                      # short headings (e.g. legal subsections) or
+                                      # an early dialogue line from collapsing
+                                      # expansion to near-zero
+
+
+# -----------------------------------------------------------------------------
+# llm — Local generative synthesis (Ollama)
+# -----------------------------------------------------------------------------
+llm:
+  provider: "ollama"                       # only "ollama" is implemented; kept explicit
+                                            # so a future provider swap is a one-line config change
+  ollama_base_url: "http://localhost:11434"  # local Ollama daemon endpoint
+  model_name: "llama3.1"                    # pulled model identifier (e.g. llama3, mistral)
+                                            # must already be pulled: `ollama pull llama3`
+
+  connect_timeout_seconds: 5.0             # fail fast if the daemon isn't running at all
+  request_timeout_seconds: 120.0           # generous — consumer laptop CPUs can take
+                                            # 30-90s for a single generation pass
+
+  temperature: 0.2                         # low — this is factual synthesis, not creative writing
+  num_predict: 300                       # cap on generated tokens (Ollama's max_tokens equivalent)
+
+  max_context_chars: 6000                  # hard cap on the assembled context block size,
+                                            # independent of result_top_m, as a defensive
+                                            # ceiling against unexpectedly long clauses

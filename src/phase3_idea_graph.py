@@ -87,6 +87,11 @@ HDBSCAN_METRIC          = _cfg.phase3.hdbscan_metric
 LOUVAIN_RESOLUTION      = _cfg.phase3.louvain_resolution
 LOUVAIN_EDGE_THRESHOLD  = _cfg.phase3.louvain_edge_threshold
 
+ENABLE_SEQUENTIAL_EDGES            = _cfg.phase3.enable_sequential_edges
+SEQUENTIAL_WINDOW                  = _cfg.phase3.sequential_window
+SEQUENTIAL_EDGE_WEIGHT              = _cfg.phase3.sequential_edge_weight
+ENABLE_CROSS_PARAGRAPH_SEQUENTIAL   = _cfg.phase3.enable_cross_paragraph_sequential
+
 HNSW_M                  = _cfg.phase3.hnsw_m
 HNSW_EF_CONSTRUCTION    = _cfg.phase3.hnsw_ef_construction
 HNSW_EF_SEARCH          = _cfg.phase3.hnsw_ef_search
@@ -466,6 +471,7 @@ def build_idea_graph(
                 "sentence_id":   int(j),
                 "similarity":    round(score, 6),
                 "cross_cluster": bool(cluster_labels[i] != cluster_labels[j]),
+                "edge_type":     "similarity",
             })
             if len(neighbors) >= top_k:
                 break
@@ -482,6 +488,113 @@ def build_idea_graph(
             "neighbors":      neighbors,
         })
 
+    return graph
+
+
+# ---------------------------------------------------------------------------
+# Sequential / proximity edges
+# ---------------------------------------------------------------------------
+
+def add_sequential_edges(
+    graph: list[dict],
+    cluster_labels: np.ndarray,
+    enable_sequential_edges: bool = ENABLE_SEQUENTIAL_EDGES,
+    sequential_window: int = SEQUENTIAL_WINDOW,
+    sequential_edge_weight: float = SEQUENTIAL_EDGE_WEIGHT,
+    enable_cross_paragraph_sequential: bool = ENABLE_CROSS_PARAGRAPH_SEQUENTIAL,
+) -> list[dict]:
+    """
+    Add narrative/document-order edges alongside the similarity edges
+    already present in `graph`, mutating and returning it in place.
+
+    Purely semantic (FAISS/cosine) edges miss a real retrieval case: a
+    heading clause ("NASTENKA'S HISTORY... I have an old grandmother") is
+    often *not* strongly similar to the body clauses that immediately
+    follow it, even though a human reader would obviously "keep reading"
+    from one into the next. Personalized PageRank can only walk edges that
+    exist, so without this pass a heading-only seed match can never reach
+    its own body text.
+
+    This pass connects each node i to the next `sequential_window` nodes in
+    original document order (i -> i+1 .. i+window), scoped to the same
+    paragraph_id unless `enable_cross_paragraph_sequential` is set. It is
+    strictly additive: existing similarity edges, clustering, and floor
+    calibration are untouched.
+
+    Node/index invariant this function relies on: build_idea_graph() always
+    appends nodes in the same order as sentence_records (for i in range(n)),
+    so graph[i]["sentence_id"] == i and "the next clause" is simply graph[i+1].
+
+    Args:
+        graph:                  Output of build_idea_graph() — mutated in place.
+        cluster_labels:         Per-node cluster assignment (same array passed
+                                 into build_idea_graph), used only to populate
+                                 the "cross_cluster" field on new edges so the
+                                 schema stays consistent with similarity edges.
+        enable_sequential_edges: Master switch — no-op and returns graph
+                                 unchanged if False.
+        sequential_window:      How many following clauses each node links to.
+        sequential_edge_weight: Fixed weight assigned to new sequential edges
+                                 (there is no similarity score to use instead).
+        enable_cross_paragraph_sequential: If False (default), a sequential
+                                 edge is only added when both clauses share the
+                                 same paragraph_id — prevents bridging across
+                                 section boundaries, which would reintroduce
+                                 the noise dynamic thresholding was built to
+                                 avoid. If True, the paragraph_id check is
+                                 skipped entirely.
+
+    Returns:
+        The same `graph` list, mutated in place (also returned for convenient
+        chaining/assignment at the call site).
+    """
+    if not enable_sequential_edges:
+        return graph
+
+    n = len(graph)
+    added, tagged_both = 0, 0
+
+    for i in range(n):
+        node = graph[i]
+        # Existing neighbor sentence_ids for this node, for O(1) dedupe lookup.
+        existing_by_id = {nb["sentence_id"]: nb for nb in node["neighbors"]}
+        src_paragraph = node.get("paragraph_id")
+
+        for offset in range(1, sequential_window + 1):
+            j = i + offset
+            if j >= n:
+                break
+
+            if not enable_cross_paragraph_sequential:
+                if src_paragraph != graph[j].get("paragraph_id"):
+                    continue
+
+            existing = existing_by_id.get(j)
+            if existing is not None:
+                # A similarity edge already connects these two nodes — don't
+                # create a second entry for the same (src, dst) pair, just
+                # mark that document order also supports this edge.
+                if existing.get("edge_type") != "both":
+                    existing["edge_type"] = "both"
+                    tagged_both += 1
+                continue
+
+            new_edge = {
+                "sentence_id":   j,
+                "similarity":    round(float(sequential_edge_weight), 6),
+                "cross_cluster": bool(cluster_labels[i] != cluster_labels[j]),
+                "edge_type":     "sequential",
+            }
+            node["neighbors"].append(new_edge)
+            existing_by_id[j] = new_edge
+            added += 1
+
+    log.info(
+        "Sequential edges: %d added, %d existing similarity edges tagged 'both' "
+        "(window=%d, weight=%.3f, cross_paragraph=%s)",
+        added, tagged_both, sequential_window, sequential_edge_weight,
+        enable_cross_paragraph_sequential,
+    )
     return graph
 
 
@@ -711,6 +824,10 @@ def main() -> None:
     except Exception as exc:
         log.error("Idea graph construction failed: %s", exc)
         raise
+
+    # 4b. Sequential/proximity edges — additive pass alongside the similarity
+    #     edges above; lets query-time PPR "keep reading" contiguous text.
+    graph = add_sequential_edges(graph, cluster_labels)
 
     # 5. Per-cluster centrality (approximated from stored neighbor similarities)
     cluster_centrality = compute_cluster_centrality(graph, cluster_labels)

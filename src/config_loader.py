@@ -96,6 +96,24 @@ class Phase3Config:
     louvain_resolution:       float = 1.0
     louvain_edge_threshold:   float = 0.50
 
+    # --- Sequential / proximity edges ---
+    # These sit alongside the similarity edges above; they let PPR "keep
+    # reading" contiguous text (e.g. a heading followed by its body) even
+    # when consecutive clauses aren't semantically similar to each other.
+    enable_sequential_edges:  bool  = True    # master switch — set false to fall back
+                                              # to pure similarity-graph behaviour
+    sequential_window:        int   = 2       # how many following clauses each node
+                                              # links to (i -> i+1 .. i+window)
+    sequential_edge_weight:   float = 0.3     # fixed weight for sequential edges — below
+                                              # global_threshold_min so it never masquerades
+                                              # as a strong semantic match, but non-zero so
+                                              # PageRank's weighted walk can still use it
+    enable_cross_paragraph_sequential: bool = False   # if false (default), sequential edges
+                                              # never bridge a paragraph_id boundary, which
+                                              # would reintroduce the noise dynamic
+                                              # thresholding was built to avoid
+
+
 
 @dataclass
 class Phase4Config:
@@ -122,6 +140,58 @@ class Phase5Config:
 
 
 @dataclass
+class PPRConfig:
+    seed_top_n:      int   = 8
+    result_top_m:    int   = 6
+    pagerank_alpha:  float = 0.85
+    max_iter:        int   = 200
+    tol:             float = 1.0e-6
+    min_edge_weight: float = 0.0
+
+    # --- Rule-based heading-context expansion ---
+    # Runs after personalized_pagerank_search(): PPR's global ranking can
+    # rank a heading-like clause highly while the body text right after it
+    # never makes the cut, since a moderate sequential-edge weight can be
+    # outcompeted by higher-similarity edges elsewhere in the graph. This
+    # deterministically pulls in the clauses that follow any top-ranked
+    # heading-like clause, independent of PPR score.
+    enable_heading_expansion:  bool = True   # master switch for this pass
+    max_expansion_per_heading: int  = 15     # HARD CEILING on clauses pulled in per
+                                              # heading, not a fixed target — expansion
+                                              # is dynamic (see expansion_stop_at_boundary)
+                                              # and normally stops well short of this;
+                                              # it exists purely so expansion can never
+                                              # run unbounded through the rest of the doc
+    min_words_for_heading:     int  = 8      # word-count threshold for the
+                                              # "short + ALL-CAPS/Title Case" heading check
+    expansion_stop_at_boundary: bool = True  # stop expanding as soon as another
+                                              # heading-like clause is encountered
+                                              # (the natural "this section is over"
+                                              # signal) rather than always walking to
+                                              # the hard cap. False = old fixed-N-style
+                                              # behaviour, kept for rollback/comparison.
+    min_expansion_before_boundary: int = 3   # a heading-like clause found before this
+                                              # many clauses have been pulled in is NOT
+                                              # trusted as a real boundary and is included
+                                              # anyway — guards against back-to-back short
+                                              # headings (e.g. legal subsections) or a
+                                              # snappy dialogue line collapsing expansion
+                                              # to near-zero
+
+
+@dataclass
+class LLMConfig:
+    provider:                 str   = "ollama"
+    ollama_base_url:           str   = "http://localhost:11434"
+    model_name:                str   = "llama3"
+    connect_timeout_seconds:   float = 5.0
+    request_timeout_seconds:   float = 120.0
+    temperature:                float = 0.2
+    num_predict:                int   = 512
+    max_context_chars:          int   = 6000
+
+
+@dataclass
 class PipelineConfig:
     """Root config object. Access sections as attributes: cfg.phase1.min_words"""
     paths:  PathsConfig  = field(default_factory=PathsConfig)
@@ -131,6 +201,8 @@ class PipelineConfig:
     phase3: Phase3Config = field(default_factory=Phase3Config)
     phase4: Phase4Config = field(default_factory=Phase4Config)
     phase5: Phase5Config = field(default_factory=Phase5Config)
+    ppr:    PPRConfig    = field(default_factory=PPRConfig)
+    llm:    LLMConfig    = field(default_factory=LLMConfig)
 
 
 # ---------------------------------------------------------------------------
@@ -203,6 +275,8 @@ def load_config(path: str = "config.yaml") -> PipelineConfig:
         "phase3": cfg.phase3,
         "phase4": cfg.phase4,
         "phase5": cfg.phase5,
+        "ppr":    cfg.ppr,
+        "llm":    cfg.llm,
     }
 
     for section_name, dataclass_instance in section_map.items():
