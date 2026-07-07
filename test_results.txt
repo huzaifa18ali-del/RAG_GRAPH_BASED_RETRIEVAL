@@ -1,0 +1,2495 @@
+==================================================
+Q1: Who is the narrator talking to throughout the story?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "Who is the narrator talking to throughout the story?",
+    "answer": "Based on the provided context, it appears that the narrator is speaking directly to a character named Nastenka (as mentioned in point 7). The use of \"Nastenka\" as an addressee suggests a conversational tone and implies that the narrator is sharing their story with this individual.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 1668,
+            "sentence": "I said in an undertone.",
+            "score": 0.020458,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1666,
+            "sentence": "My heart began throbbing.",
+            "score": 0.015851,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 790,
+            "sentence": "\u201cOh, I forgot to tell you that our house belongs to us, that is to grandmother; it is a little wooden house with three windows as old as grandmother herself, with a little upper storey; well, there moved into our upper storey a new lodger.\u201d",
+            "score": 0.015576,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 500,
+            "sentence": "\u201cListen; I don\u2019t know in the least why it happened and ; all I know is, that this adventure must have happened word for word to you.\u201d",
+            "score": 0.014728,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1143,
+            "sentence": "The answer was himself.",
+            "score": 0.014672,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 570,
+            "sentence": "floats away like a dream, and he cannot himself remember what he was dreaming.",
+            "score": 0.013694,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 529,
+            "sentence": "At that hour our hero \u2014 for allow me, Nastenka, , for one feels awfully ashamed to tell it in the first person \u2014 and",
+            "score": 0.013414,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1692,
+            "sentence": "From whom?\u201d I cried jumping up from my chair.",
+            "score": 0.012838,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 40553.7
+}
+
+==================================================
+Q2: What city does the story take place in?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What city does the story take place in?",
+    "answer": "Based on the provided context, I do not have enough information to confidently determine the specific city where the story takes place. The narrative mentions \"Petersburg\" (extract #5) and \"the divinely eternal city\" (extract #3), which could refer to St. Petersburg or another city with a similar description. However, without further context or clarification, I cannot pinpoint the exact location.\n\nIt is worth noting that the story appears to be set in Russia, given the mention of \"Petersburg\" and \"Pavlovsk\" (extracts #5 and #13), which are both locations within the St. Petersburg region. However, without more specific information, it is difficult to determine the exact city where the events unfold.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 641,
+            "sentence": "in one instant they forget their sorrow and their parting and all their agonies, and the gloomy house and the old man and the dismal garden in that distant land, and the seat on which with a last passionate kiss she tore herself away from his arms numb with anguish and despair",
+            "score": 0.031559,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 633,
+            "sentence": "And that queer ancestral house where she spent so many years lonely and sad with her morose old husband, always silent and splenetic, who frightened them, while timid ?",
+            "score": 0.028197,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 637,
+            "sentence": "surely he met her afterwards, far from their native shores, under alien skies, in the hot south in the divinely eternal city, in the dazzling splendour of the ball to the crash of music, in a palazzo (it must be in a palazzo), ,\u2019 flings herself trembling into his arms, and with a cry of rapture, . . . .",
+            "score": 0.028174,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 638,
+            "sentence": "drowned in a sea of lights, on the balcony,",
+            "score": 0.018849,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 113,
+            "sentence": "There is something inexpressibly touching in nature round Petersburg, . . . .",
+            "score": 0.01703,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1614,
+            "sentence": "But where do you live?",
+            "score": 0.016197,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1613,
+            "sentence": "And we both laughed.",
+            "score": 0.015647,
+            "is_seed": true,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1615,
+            "sentence": "\u201cOver that way, near X bridge, Barannikov\u2019s Buildings.\u201d",
+            "score": 0.014652,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 639,
+            "sentence": "wreathed in myrtle and roses, where, recognizing him, she hurriedly removes her mask and whispering, \u2018I am free",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 640,
+            "sentence": "clinging to one another,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 642,
+            "sentence": "Oh, Nastenka, you must admit that one would start, betray confusion, and blush like a schoolboy who has just stuffed in his pocket an apple stolen from a neighbour\u2019s garden, .\u2019",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 643,
+            "sentence": "when your uninvited visitor, some stalwart, lanky fellow, a festive soul fond of a joke, opens your door and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 644,
+            "sentence": "shouts out : \u2018My dear boy, I have this minute come from Pavlovsk",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 645,
+            "sentence": "as though nothing were happening",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 646,
+            "sentence": "the old count is dead, unutterable happiness is close at hand \u2014 and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 647,
+            "sentence": "people arrive from Pavlovsk!\u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 648,
+            "sentence": "Finishing my pathetic appeal",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 649,
+            "sentence": "I remembered that I had an intense desire to force myself to laugh, .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 650,
+            "sentence": "for I was already feeling that a malignant demon was stirring within me, that there was a lump in my throat,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 651,
+            "sentence": "that my chin was beginning to twitch, and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 652,
+            "sentence": "that my eyes were growing more and more moist",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 114,
+            "sentence": "when at the approach of spring she puts forth all her might, all the powers bestowed on her by Heaven, when she breaks into leaf, decks herself out and spangles herself with flowers",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        },
+        {
+            "sentence_id": 115,
+            "sentence": "though suddenly in one instant she becomes, as though by chance, inexplicably lovely and exquisite, and, impressed and intoxicated",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        },
+        {
+            "sentence_id": 116,
+            "sentence": "Somehow I cannot help being reminded of a frail, consumptive girl, at whom one sometimes looks with compassion, sometimes with sympathetic love, whom sometimes one simply does not notice; , one cannot help asking oneself what power made those sad, pensive eyes flash with such fire?",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        },
+        {
+            "sentence_id": 117,
+            "sentence": "What summoned the blood to those pale",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        },
+        {
+            "sentence_id": 118,
+            "sentence": "What bathed with passion those soft features?",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        },
+        {
+            "sentence_id": 119,
+            "sentence": "What set that bosom heaving?",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        },
+        {
+            "sentence_id": 120,
+            "sentence": "What so suddenly called strength, life and beauty into the poor girl\u2019s face, ?",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        },
+        {
+            "sentence_id": 121,
+            "sentence": "making it gleam with such a smile, kindle with such bright, sparkling laughter",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 113
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 104742.9
+}
+
+==================================================
+Q3: What does Nastenka tell the narrator about her grandmother?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What does Nastenka tell the narrator about her grandmother?",
+    "answer": "According to the provided context, Nastenka tells the narrator about her grandmother in the following details:\n\nNastenka's grandmother is old and blind. When Nastenka was a little girl (around 15 years old at that time), she got into some kind of mischief, but the nature of it is not specified. The grandmother then called Nastenka to her one morning and said that as she was blind, she could no longer take care of Nastenka. The grandmother pinned Nastenka's dress to hers, suggesting a permanent arrangement between them.\n\nIt can be inferred from this conversation that the narrator is trying to understand Nastenka's situation with her grandmother, but it seems that Nastenka is hesitant or unwilling to discuss the matter further.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 664,
+            "sentence": "\u201cI know, Nastenka, I know!\u201d",
+            "score": 0.033085,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1529,
+            "sentence": "Well, I have made up my mind, I will tell you.\u201d",
+            "score": 0.032172,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1610,
+            "sentence": "I said to her, \u2018Why a young man?\u2019",
+            "score": 0.019376,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 753,
+            "sentence": "NASTENKA\u2019S HISTORY \u201cHalf my story you know already \u2014 that is, you know that I have an old grandmother. . . . \u201d",
+            "score": 0.018923,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1439,
+            "sentence": "\u201cListen to me, Nastenka!",
+            "score": 0.017639,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1476,
+            "sentence": "making me sit down on the seat",
+            "score": 0.015422,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1428,
+            "sentence": "\u201cNastenka, you torture me!",
+            "score": 0.014353,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 653,
+            "sentence": "I expected Nastenka, who listened to me , would break into her childish, irrepressible laugh; and , that I had unnecessarily described what had long been simmering in my heart, about which I could speak as though from a written account of it, ; but ?\u201d",
+            "score": 0.013129,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 754,
+            "sentence": "\u201cIf the other half is as brief as that . . . \u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 755,
+            "sentence": "\u201cBe quiet and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 756,
+            "sentence": "First of all you must agree not to interrupt me, or else, perhaps I shall get in a muddle!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 757,
+            "sentence": "\u201cI have an old grandmother.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 758,
+            "sentence": "I came into her hands when I was quite a little girl, for my father and mother are dead.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 759,
+            "sentence": "It must be supposed that grandmother was once richer, for now she recalls better days.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 760,
+            "sentence": "She taught me French, and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 761,
+            "sentence": "then got a teacher for me",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 762,
+            "sentence": "When I was fifteen (and now I am seventeen)",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 763,
+            "sentence": "we gave up having lessons.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 764,
+            "sentence": "It was at that time that I got into mischief; what I did I won\u2019t tell you; it\u2019s enough to say that it wasn\u2019t very important.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 765,
+            "sentence": "But grandmother called me to her one morning and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 766,
+            "sentence": "said that as she was blind she could not look after me; she took a pin and pinned my dress to hers, and said that we should sit like that for the rest of our lives",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 767,
+            "sentence": "if, of course, I did not become a better girl",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 81683.0
+}
+
+==================================================
+Q4: What happened to Nastenka's parents?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What happened to Nastenka's parents?",
+    "answer": "According to Nastenka's story, her father and mother are dead. This is stated in sentence 13 of the extracted context: \"I came into her hands when I was quite a little girl, for my father and mother are dead.\"",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 1610,
+            "sentence": "I said to her, \u2018Why a young man?\u2019",
+            "score": 0.023941,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 753,
+            "sentence": "NASTENKA\u2019S HISTORY \u201cHalf my story you know already \u2014 that is, you know that I have an old grandmother. . . . \u201d",
+            "score": 0.020151,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 800,
+            "sentence": "only afterwards she asked me: \u2018Tell me, Nastenka, what is our lodger like \u2014 is he young or old?\u2019",
+            "score": 0.019978,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1462,
+            "sentence": "But you. . . . \u201d",
+            "score": 0.017586,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 781,
+            "sentence": "At this point Nastenka stopped and .",
+            "score": 0.016602,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 742,
+            "sentence": "\u201cAh, Nastenka,\u201d I cried, \u201c!",
+            "score": 0.016254,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1476,
+            "sentence": "making me sit down on the seat",
+            "score": 0.015079,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 664,
+            "sentence": "\u201cI know, Nastenka, I know!\u201d",
+            "score": 0.012837,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 754,
+            "sentence": "\u201cIf the other half is as brief as that . . . \u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 755,
+            "sentence": "\u201cBe quiet and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 756,
+            "sentence": "First of all you must agree not to interrupt me, or else, perhaps I shall get in a muddle!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 757,
+            "sentence": "\u201cI have an old grandmother.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 758,
+            "sentence": "I came into her hands when I was quite a little girl, for my father and mother are dead.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 759,
+            "sentence": "It must be supposed that grandmother was once richer, for now she recalls better days.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 760,
+            "sentence": "She taught me French, and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 761,
+            "sentence": "then got a teacher for me",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 762,
+            "sentence": "When I was fifteen (and now I am seventeen)",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 763,
+            "sentence": "we gave up having lessons.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 764,
+            "sentence": "It was at that time that I got into mischief; what I did I won\u2019t tell you; it\u2019s enough to say that it wasn\u2019t very important.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 765,
+            "sentence": "But grandmother called me to her one morning and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 766,
+            "sentence": "said that as she was blind she could not look after me; she took a pin and pinned my dress to hers, and said that we should sit like that for the rest of our lives",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 767,
+            "sentence": "if, of course, I did not become a better girl",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 51775.5
+}
+
+==================================================
+Q5: What promise does the narrator make to Nastenka?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What promise does the narrator make to Nastenka?",
+    "answer": "Based on the extracted context, it appears that the narrator makes a promise to Nastenka regarding marriage. Specifically, the narrator states: \"I swear to you that if I am ever in a position to marry, you shall make my happiness\" (extracted fact #8). This suggests that the narrator is making a vow or commitment to prioritize Nastenka's happiness in their future life together, should they get married.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 664,
+            "sentence": "\u201cI know, Nastenka, I know!\u201d",
+            "score": 0.028497,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1439,
+            "sentence": "\u201cListen to me, Nastenka!",
+            "score": 0.021153,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1405,
+            "sentence": "\u201cListen, Nastenka, I shall go to him to-morrow in your name.\u201d",
+            "score": 0.020205,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1476,
+            "sentence": "making me sit down on the seat",
+            "score": 0.020158,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1529,
+            "sentence": "Well, I have made up my mind, I will tell you.\u201d",
+            "score": 0.017137,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1464,
+            "sentence": "Her cheeks flamed; she dropped her eyes.",
+            "score": 0.017061,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1428,
+            "sentence": "\u201cNastenka, you torture me!",
+            "score": 0.014959,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 976,
+            "sentence": "\u201c\u2018Listen, my dear good Nastenka, listen; I swear to you that if I am ever in a position to marry, you shall make my happiness.",
+            "score": 0.014725,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 41879.3
+}
+
+==================================================
+Q6: What happens between the narrator and Nastenka on the first night versus the fourth night?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What happens between the narrator and Nastenka on the first night versus the fourth night?",
+    "answer": "Based on the provided context, it appears that there is no direct information about the events of the first night versus the fourth night between the narrator and Nastenka. The extracted context seems to be a narrative from Nastenka's history, where she shares her story with someone (likely the narrator) in a series of conversations.\n\nHowever, we can infer some general dynamics between the narrator and Nastenka based on their interactions. On the fourth night, Nastenka is described as listening attentively to the narrator, who expects her to break into laughter at some point. This suggests that there may be a lighthearted or playful tone in their interaction.\n\nIn contrast, there is no information about the events of the first night between the narrator and Nastenka. The context only provides snippets of their conversation on subsequent nights, without specifying what happened on the first night.\n\nTherefore, I do not have enough information to provide a detailed comparison of the events between the first night and the fourth night. If you could provide more context or clarify your question, I would be happy to try and assist further.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 664,
+            "sentence": "\u201cI know, Nastenka, I know!\u201d",
+            "score": 0.025408,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1646,
+            "sentence": "\u201cWe must give over being childish.\u201d",
+            "score": 0.018145,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1476,
+            "sentence": "making me sit down on the seat",
+            "score": 0.017943,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 800,
+            "sentence": "only afterwards she asked me: \u2018Tell me, Nastenka, what is our lodger like \u2014 is he young or old?\u2019",
+            "score": 0.017593,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 753,
+            "sentence": "NASTENKA\u2019S HISTORY \u201cHalf my story you know already \u2014 that is, you know that I have an old grandmother. . . . \u201d",
+            "score": 0.01572,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1529,
+            "sentence": "Well, I have made up my mind, I will tell you.\u201d",
+            "score": 0.014572,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1638,
+            "sentence": "would want to see her to the house",
+            "score": 0.014172,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 653,
+            "sentence": "I expected Nastenka, who listened to me , would break into her childish, irrepressible laugh; and , that I had unnecessarily described what had long been simmering in my heart, about which I could speak as though from a written account of it, ; but ?\u201d",
+            "score": 0.013956,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 754,
+            "sentence": "\u201cIf the other half is as brief as that . . . \u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 755,
+            "sentence": "\u201cBe quiet and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 756,
+            "sentence": "First of all you must agree not to interrupt me, or else, perhaps I shall get in a muddle!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 757,
+            "sentence": "\u201cI have an old grandmother.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 758,
+            "sentence": "I came into her hands when I was quite a little girl, for my father and mother are dead.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 759,
+            "sentence": "It must be supposed that grandmother was once richer, for now she recalls better days.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 760,
+            "sentence": "She taught me French, and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 761,
+            "sentence": "then got a teacher for me",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 762,
+            "sentence": "When I was fifteen (and now I am seventeen)",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 763,
+            "sentence": "we gave up having lessons.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 764,
+            "sentence": "It was at that time that I got into mischief; what I did I won\u2019t tell you; it\u2019s enough to say that it wasn\u2019t very important.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 765,
+            "sentence": "But grandmother called me to her one morning and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 766,
+            "sentence": "said that as she was blind she could not look after me; she took a pin and pinned my dress to hers, and said that we should sit like that for the rest of our lives",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 767,
+            "sentence": "if, of course, I did not become a better girl",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 104071.3
+}
+
+==================================================
+Q7: Why does Nastenka wait by the embankment each evening?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "Why does Nastenka wait by the embankment each evening?",
+    "answer": "Unfortunately, there is no information in the provided context about why Nastenka waits by the embankment each evening. The extracted facts only provide insight into Nastenka's personal history and her relationship with her grandmother, but do not mention her activities or whereabouts at any specific time of day.\n\nTherefore, I must conclude that I do not have enough information to answer this question confidently.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 1428,
+            "sentence": "\u201cNastenka, you torture me!",
+            "score": 0.026377,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1439,
+            "sentence": "\u201cListen to me, Nastenka!",
+            "score": 0.025199,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 664,
+            "sentence": "\u201cI know, Nastenka, I know!\u201d",
+            "score": 0.020679,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1405,
+            "sentence": "\u201cListen, Nastenka, I shall go to him to-morrow in your name.\u201d",
+            "score": 0.017477,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1464,
+            "sentence": "Her cheeks flamed; she dropped her eyes.",
+            "score": 0.016547,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1529,
+            "sentence": "Well, I have made up my mind, I will tell you.\u201d",
+            "score": 0.016263,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 753,
+            "sentence": "NASTENKA\u2019S HISTORY \u201cHalf my story you know already \u2014 that is, you know that I have an old grandmother. . . . \u201d",
+            "score": 0.015088,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1638,
+            "sentence": "would want to see her to the house",
+            "score": 0.014264,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 754,
+            "sentence": "\u201cIf the other half is as brief as that . . . \u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 755,
+            "sentence": "\u201cBe quiet and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 756,
+            "sentence": "First of all you must agree not to interrupt me, or else, perhaps I shall get in a muddle!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 757,
+            "sentence": "\u201cI have an old grandmother.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 758,
+            "sentence": "I came into her hands when I was quite a little girl, for my father and mother are dead.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 759,
+            "sentence": "It must be supposed that grandmother was once richer, for now she recalls better days.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 760,
+            "sentence": "She taught me French, and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 761,
+            "sentence": "then got a teacher for me",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 762,
+            "sentence": "When I was fifteen (and now I am seventeen)",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 763,
+            "sentence": "we gave up having lessons.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 764,
+            "sentence": "It was at that time that I got into mischief; what I did I won\u2019t tell you; it\u2019s enough to say that it wasn\u2019t very important.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 765,
+            "sentence": "But grandmother called me to her one morning and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 766,
+            "sentence": "said that as she was blind she could not look after me; she took a pin and pinned my dress to hers, and said that we should sit like that for the rest of our lives",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 767,
+            "sentence": "if, of course, I did not become a better girl",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 59949.7
+}
+
+==================================================
+Q8: Does the story end happily or unhappily?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "Does the story end happily or unhappily?",
+    "answer": "Based on the provided context, it is not possible to determine with certainty whether the story ends happily or unhappily. The text suggests that there are unresolved issues and conflicts, as evidenced by phrases such as \"it ended in trouble\" (sentence 7) and \"these unhappy girls to their fate\" (sentence 6). However, the tone of the narrative also implies a sense of resignation and acceptance, with characters urging others to \"wait\" (sentences 4 and 11).\n\nWithout further information or context, it is not possible to confidently determine whether the story concludes on a positive or negative note. The text raises more questions than it answers, leaving the reader with an uncertain outcome.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 390,
+            "sentence": "\u201cHow did it end?",
+            "score": 0.027552,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 389,
+            "sentence": "\u201cAnd how did it end?\u201d",
+            "score": 0.023393,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 392,
+            "sentence": "as one always does in the end",
+            "score": 0.019293,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1551,
+            "sentence": "you mustn\u2019t think that these tears \u2014 it\u2019s nothing, it\u2019s weakness, wait .\u201d . . .",
+            "score": 0.019273,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1354,
+            "sentence": "What it has all ended in!",
+            "score": 0.015368,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 842,
+            "sentence": "how afterwards they leave these unhappy girls to their fate",
+            "score": 0.015039,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 776,
+            "sentence": "Well, it ended in trouble.",
+            "score": 0.012629,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 504,
+            "sentence": "because I want very much to know how it will end",
+            "score": 0.012075,
+            "is_seed": true,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1552,
+            "sentence": "At last she left off crying, and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 1551
+        },
+        {
+            "sentence_id": 1553,
+            "sentence": "we walked on again.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 1551
+        },
+        {
+            "sentence_id": 1554,
+            "sentence": "I wanted to speak, but",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 1551
+        },
+        {
+            "sentence_id": 1555,
+            "sentence": "she still begged me to wait.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 1551
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 51288.7
+}
+
+==================================================
+Q9: What does the ending suggest about the narrator's future?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What does the ending suggest about the narrator's future?",
+    "answer": "Based on the extracted context, it appears that the ending suggests a sense of melancholy and loss for the narrator. The passage describes a decline from a state of wonder and enchantment to one of desolation and misery (extract 1). The narrator's \"fantastic world\" will grow pale, their dreams will fade, and they will be left with nothing but memories of what has been lost (extract 2).\n\nThe narrative also implies that the narrator is struggling to cope with a sense of abandonment or separation from someone or something important. The description of a \"gloomy house\" and an \"old man\" suggests a sense of isolation and loneliness (extract 4). The narrator's inability to remember their dreams and the fleeting nature of their experiences suggest a sense of impermanence and loss (extracts 5-6).\n\nThe use of phrases such as \"the end is near\" (extract 8) and \"will fall like the yellow leaves from the trees\" (extract 9) suggests a sense of inevitability and finality. The narrator's admission that they will be left alone, utterly alone, and without anything to regret (extracts 10-11), further emphasizes this sense of loss and isolation.\n\nHowever, it is worth noting that the narrative also suggests a sense of resilience and hope for the narrator. The passage describes a new world and a new life opening up before them (extract 6), and the narrator's ability to connect with someone else,",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 721,
+            "sentence": "Some more years will pass, and ; then will come , and after it misery and desolation.",
+            "score": 0.025514,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 723,
+            "sentence": "Your fantastic world will grow pale, your dreams will fade and and . . . .",
+            "score": 0.023487,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 569,
+            "sentence": "It has grown dark in the room; his soul is sad and empty; the whole kingdom of fancies drops to pieces about him, drops to pieces without a trace, without a sound",
+            "score": 0.018377,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 641,
+            "sentence": "in one instant they forget their sorrow and their parting and all their agonies, and the gloomy house and the old man and the dismal garden in that distant land, and the seat on which with a last passionate kiss she tore herself away from his arms numb with anguish and despair",
+            "score": 0.017355,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 570,
+            "sentence": "floats away like a dream, and he cannot himself remember what he was dreaming.",
+            "score": 0.016689,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 578,
+            "sentence": "again a new world, a new fascinating life opens vistas before him.",
+            "score": 0.014676,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1354,
+            "sentence": "What it has all ended in!",
+            "score": 0.013702,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 933,
+            "sentence": "\u201cNow the end is near.",
+            "score": 0.013115,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 724,
+            "sentence": "will fall like the yellow leaves from the trees",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 725,
+            "sentence": "you know it will be sad to be left alone, utterly alone, and . . .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 726,
+            "sentence": "to have not even anything to regret \u2014 nothing, absolutely nothing",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 727,
+            "sentence": "for all that you have lost, all that, all was nothing, stupid, simple nullity, there has been nothing but dreams!\u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 728,
+            "sentence": "\u201cCome, don\u2019t work on my feelings any more,\u201d said Nastenka, .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 729,
+            "sentence": "wiping away a tear which was trickling down her cheek",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 730,
+            "sentence": "Now we shall be two together.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 731,
+            "sentence": "whatever happens to me",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 732,
+            "sentence": "Now, , we will never part.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 733,
+            "sentence": "I am a simple girl, I have not had much education, .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 734,
+            "sentence": "though grandmother did get a teacher for me, but truly I understand you, for all that you have described I have been through myself, when grandmother pinned me to her dress",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 735,
+            "sentence": "Of course, I should not have described it so well ; I am not educated,\u201d she added timidly, ; \u201cbut I am very glad that you have been quite open with me.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 736,
+            "sentence": "for she was still feeling a sort of respect for my pathetic eloquence and lofty style",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 737,
+            "sentence": "Now I know you thoroughly, all of you.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        },
+        {
+            "sentence_id": 738,
+            "sentence": "And do you know what?",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 723
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 127695.7
+}
+
+==================================================
+Q10: What is the narrator's profession?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What is the narrator's profession?",
+    "answer": "Based on the provided context, I do not have enough information to determine the narrator's profession with certainty. The text appears to be a passage from a literary work, possibly a novel or short story, and does not explicitly mention the narrator's occupation.\n\nHowever, it can be inferred that the narrator is an artist or writer, as they mention \"years of phantasy\" (line 14) and describe themselves as creating their own life and world through imagination (lines 15-16). They also reference specific literary works and characters, such as Hoffmann, St. Bartholomew's Night, and Robert the Devil (lines 7-8), which suggests a familiarity with literature and possibly a career in writing or academia.\n\nIt is worth noting that the narrator may be using their profession as a way to explore themes of creativity, imagination, and the human experience, rather than providing a straightforward description of their occupation.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 529,
+            "sentence": "At that hour our hero \u2014 for allow me, Nastenka, , for one feels awfully ashamed to tell it in the first person \u2014 and",
+            "score": 0.020988,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 505,
+            "sentence": "\u201cYou want to know, Nastenka, what our hero, that is I\u2014 for the hero of the whole business was my humble self \u2014 did in his corner?",
+            "score": 0.017706,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 577,
+            "sentence": "His imagination is again stirred and at work, and",
+            "score": 0.014906,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 528,
+            "sentence": "to tell my story in the third person",
+            "score": 0.014899,
+            "is_seed": true,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 500,
+            "sentence": "\u201cListen; I don\u2019t know in the least why it happened and ; all I know is, that this adventure must have happened word for word to you.\u201d",
+            "score": 0.013524,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1692,
+            "sentence": "From whom?\u201d I cried jumping up from my chair.",
+            "score": 0.013202,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1143,
+            "sentence": "The answer was himself.",
+            "score": 0.013175,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 591,
+            "sentence": "of the lot of the poet, first unrecognized, then crowned with laurels; of friendship with Hoffmann, St. Bartholomew\u2019s Night, of Diana Vernon, of playing the hero at the taking of Kazan by Ivan Vassilyevitch, of Clara Mowbray, of Effie Deans, of the council of the prelates and Huss before them, of the rising of the dead in \u2018Robert the Devil\u2019 (do you remember the music, it smells of the churchyard!), of Minna and Brenda, of the battle of Berezina, of the reading of a poem at Countess V. D.\u2018s, of Danton, of Cleopatra beside one a dear creature who listens to one on a winter\u2019s evening, , my angel. . . .",
+            "score": 0.012142,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 592,
+            "sentence": "ei suoi amanti, of a little house in Kolomna, of a little home of one\u2019s own and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 593,
+            "sentence": "opening her little mouth and eyes as you are listening to me now",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 594,
+            "sentence": "No, Nastenka, what is there, what is there for him, voluptuous sluggard, in this life, for which you and I have such a longing?",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 595,
+            "sentence": "He thinks that this is a poor pitiful life, .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 596,
+            "sentence": "not foreseeing that for him too, maybe, sometime the mournful hour may strike, but without caring to make distinctions in that hour of sadness, remorse and unchecked grief",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 597,
+            "sentence": "when for one day of that pitiful life he would give all his years of phantasy, and would give them not only for joy and for happiness,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 598,
+            "sentence": "But so far that threatening has not arrived \u2014 he desires nothing, because he is superior to all desire, , because he is the artist of his own life, and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 599,
+            "sentence": "because he has everything,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 600,
+            "sentence": "because he is satiated",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 601,
+            "sentence": "creates it for himself every hour",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 602,
+            "sentence": "to suit his latest whim",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 603,
+            "sentence": "And you know this fantastic world of fairyland is so easily, so naturally created!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 604,
+            "sentence": "As though it were not a delusion!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 605,
+            "sentence": "Indeed, he is ready to believe at some moments that all this life is not suggested by feeling, is not mirage, not a delusion of the imagination, but that it is concrete, real, substantial!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        },
+        {
+            "sentence_id": 606,
+            "sentence": "Why is it, Nastenka, why is it at such moments one holds one\u2019s breath?",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 591
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 120281.2
+}
+
+==================================================
+Q11: What year does the story take place in?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What year does the story take place in?",
+    "answer": "Unfortunately, I do not have enough information to determine the specific year in which the story takes place. The extracted context provides various scenes and events, but none of them include a clear indication of the time period or date. There are mentions of locations such as \"Pavlovsk\" (which is likely referring to Pavlovsk Palace near St. Petersburg, Russia) and \"the divinely eternal city\" (which could be Rome), but these do not provide a specific temporal reference.\n\nAdditionally, there are no explicit dates mentioned in the context, nor any historical events or cultural references that would allow me to narrow down the time period. Therefore, I am unable to provide an answer to this question with confidence.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 641,
+            "sentence": "in one instant they forget their sorrow and their parting and all their agonies, and the gloomy house and the old man and the dismal garden in that distant land, and the seat on which with a last passionate kiss she tore herself away from his arms numb with anguish and despair",
+            "score": 0.022897,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 637,
+            "sentence": "surely he met her afterwards, far from their native shores, under alien skies, in the hot south in the divinely eternal city, in the dazzling splendour of the ball to the crash of music, in a palazzo (it must be in a palazzo), ,\u2019 flings herself trembling into his arms, and with a cry of rapture, . . . .",
+            "score": 0.020309,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 829,
+            "sentence": "When the lodger saw",
+            "score": 0.018276,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1354,
+            "sentence": "What it has all ended in!",
+            "score": 0.013717,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 947,
+            "sentence": "when grandmother went to bed",
+            "score": 0.013492,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 14,
+            "sentence": "when all Petersburg packed up and went to its summer villa",
+            "score": 0.013367,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1247,
+            "sentence": "when the letter came",
+            "score": 0.012978,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 856,
+            "sentence": "\u201cSo we began reading Walter Scott, and",
+            "score": 0.012911,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 638,
+            "sentence": "drowned in a sea of lights, on the balcony,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 639,
+            "sentence": "wreathed in myrtle and roses, where, recognizing him, she hurriedly removes her mask and whispering, \u2018I am free",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 640,
+            "sentence": "clinging to one another,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 642,
+            "sentence": "Oh, Nastenka, you must admit that one would start, betray confusion, and blush like a schoolboy who has just stuffed in his pocket an apple stolen from a neighbour\u2019s garden, .\u2019",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 643,
+            "sentence": "when your uninvited visitor, some stalwart, lanky fellow, a festive soul fond of a joke, opens your door and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 644,
+            "sentence": "shouts out : \u2018My dear boy, I have this minute come from Pavlovsk",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 645,
+            "sentence": "as though nothing were happening",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 646,
+            "sentence": "the old count is dead, unutterable happiness is close at hand \u2014 and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 647,
+            "sentence": "people arrive from Pavlovsk!\u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 648,
+            "sentence": "Finishing my pathetic appeal",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 649,
+            "sentence": "I remembered that I had an intense desire to force myself to laugh, .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 650,
+            "sentence": "for I was already feeling that a malignant demon was stirring within me, that there was a lump in my throat,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 651,
+            "sentence": "that my chin was beginning to twitch, and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 652,
+            "sentence": "that my eyes were growing more and more moist",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 85879.9
+}
+
+==================================================
+Q12: What does Nastenka's dog think of the narrator?
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "What does Nastenka's dog think of the narrator?",
+    "answer": "I don't have enough information to provide an answer about what Nastenka's dog thinks of the narrator. The provided context only mentions Nastenka, a person, and her grandmother, but there is no mention of a dog.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 664,
+            "sentence": "\u201cI know, Nastenka, I know!\u201d",
+            "score": 0.039664,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1529,
+            "sentence": "Well, I have made up my mind, I will tell you.\u201d",
+            "score": 0.034205,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1428,
+            "sentence": "\u201cNastenka, you torture me!",
+            "score": 0.028037,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1439,
+            "sentence": "\u201cListen to me, Nastenka!",
+            "score": 0.025376,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 467,
+            "sentence": "What do I hear?\u201d \u201cListen, Nastenka.",
+            "score": 0.017183,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1476,
+            "sentence": "making me sit down on the seat",
+            "score": 0.014879,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 753,
+            "sentence": "NASTENKA\u2019S HISTORY \u201cHalf my story you know already \u2014 that is, you know that I have an old grandmother. . . . \u201d",
+            "score": 0.014315,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 653,
+            "sentence": "I expected Nastenka, who listened to me , would break into her childish, irrepressible laugh; and , that I had unnecessarily described what had long been simmering in my heart, about which I could speak as though from a written account of it, ; but ?\u201d",
+            "score": 0.013911,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 754,
+            "sentence": "\u201cIf the other half is as brief as that . . . \u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 755,
+            "sentence": "\u201cBe quiet and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 756,
+            "sentence": "First of all you must agree not to interrupt me, or else, perhaps I shall get in a muddle!",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 757,
+            "sentence": "\u201cI have an old grandmother.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 758,
+            "sentence": "I came into her hands when I was quite a little girl, for my father and mother are dead.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 759,
+            "sentence": "It must be supposed that grandmother was once richer, for now she recalls better days.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 760,
+            "sentence": "She taught me French, and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 761,
+            "sentence": "then got a teacher for me",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 762,
+            "sentence": "When I was fifteen (and now I am seventeen)",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 763,
+            "sentence": "we gave up having lessons.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 764,
+            "sentence": "It was at that time that I got into mischief; what I did I won\u2019t tell you; it\u2019s enough to say that it wasn\u2019t very important.",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 765,
+            "sentence": "But grandmother called me to her one morning and .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 766,
+            "sentence": "said that as she was blind she could not look after me; she took a pin and pinned my dress to hers, and said that we should sit like that for the rest of our lives",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        },
+        {
+            "sentence_id": 767,
+            "sentence": "if, of course, I did not become a better girl",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 753
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 57484.3
+}
+
+==================================================
+Q13: Summarize chapter 12.
+==================================================
+{
+    "task_id": "b6b045ba-2064-45ff-a918-a7c03c7e13c7",
+    "question": "Summarize chapter 12.",
+    "answer": "Based on the provided context, it appears that Chapter 12 is not explicitly described in the given extracts. However, I can attempt to synthesize the information from the surrounding sections to provide a general idea of what might be happening in Chapter 12.\n\nFrom the context, it seems that the narrative has shifted between different scenes and storylines. The chapter may involve the protagonist's continued interactions with Nastenka, possibly at a social gathering or party (extracts 9-11). There is also a mention of reading Walter Scott together (extract 7), which could be an activity they engage in during this time.\n\nThe tone of Chapter 12 might be more lighthearted and humorous, as the protagonist seems to be trying to laugh off their emotions (extract 19) and there are mentions of jests and playful interactions (extracts 11-12). However, it's also possible that the chapter explores themes of longing and separation, given the context of the previous chapters.\n\nWithout more explicit information from Chapter 12 itself, I can only provide a speculative summary based on the surrounding context.",
+    "model": "llama3.1",
+    "sources": [
+        {
+            "sentence_id": 641,
+            "sentence": "in one instant they forget their sorrow and their parting and all their agonies, and the gloomy house and the old man and the dismal garden in that distant land, and the seat on which with a last passionate kiss she tore herself away from his arms numb with anguish and despair",
+            "score": 0.023519,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 637,
+            "sentence": "surely he met her afterwards, far from their native shores, under alien skies, in the hot south in the divinely eternal city, in the dazzling splendour of the ball to the crash of music, in a palazzo (it must be in a palazzo), ,\u2019 flings herself trembling into his arms, and with a cry of rapture, . . . .",
+            "score": 0.018095,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1592,
+            "sentence": "went back again to the embankment",
+            "score": 0.015313,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 513,
+            "sentence": "as though you were reading it out of a book",
+            "score": 0.014993,
+            "is_seed": true,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1354,
+            "sentence": "What it has all ended in!",
+            "score": 0.01429,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 1751,
+            "sentence": "Either the sunbeams suddenly peeping out from the clouds for a moment were hidden again behind a veil of rain, and",
+            "score": 0.013994,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 856,
+            "sentence": "\u201cSo we began reading Walter Scott, and",
+            "score": 0.013112,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 835,
+            "sentence": "A fortnight passed; the lodger sent word through Fyokla that he had a great number of French books, and that they were all good books that I might read, so ?",
+            "score": 0.012465,
+            "is_seed": true,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": null
+        },
+        {
+            "sentence_id": 638,
+            "sentence": "drowned in a sea of lights, on the balcony,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 639,
+            "sentence": "wreathed in myrtle and roses, where, recognizing him, she hurriedly removes her mask and whispering, \u2018I am free",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 640,
+            "sentence": "clinging to one another,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 642,
+            "sentence": "Oh, Nastenka, you must admit that one would start, betray confusion, and blush like a schoolboy who has just stuffed in his pocket an apple stolen from a neighbour\u2019s garden, .\u2019",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 643,
+            "sentence": "when your uninvited visitor, some stalwart, lanky fellow, a festive soul fond of a joke, opens your door and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 644,
+            "sentence": "shouts out : \u2018My dear boy, I have this minute come from Pavlovsk",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 645,
+            "sentence": "as though nothing were happening",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 646,
+            "sentence": "the old count is dead, unutterable happiness is close at hand \u2014 and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 647,
+            "sentence": "people arrive from Pavlovsk!\u201d",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 648,
+            "sentence": "Finishing my pathetic appeal",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": -1,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 649,
+            "sentence": "I remembered that I had an intense desire to force myself to laugh, .",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 650,
+            "sentence": "for I was already feeling that a malignant demon was stirring within me, that there was a lump in my throat,",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 651,
+            "sentence": "that my chin was beginning to twitch, and",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        },
+        {
+            "sentence_id": 652,
+            "sentence": "that my eyes were growing more and more moist",
+            "score": 0.0,
+            "is_seed": false,
+            "cluster_id": 0,
+            "paragraph_id": 1,
+            "expansion_source": 637
+        }
+    ],
+    "ppr_fallback_used": false,
+    "latency_ms": 115003.9
+}
+

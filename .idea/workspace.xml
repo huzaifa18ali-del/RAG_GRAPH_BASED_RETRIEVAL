@@ -4,9 +4,9 @@
     <list default="true" id="c3c43d78-0f21-497e-b2e6-8803d275bf4e" name="Changes" comment="finihsed version of everyhting before finla api call">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config_loader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/clinical.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/clinical.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/legal.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/legal.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/phase3_idea_graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/phase3_idea_graph.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_spacy.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,9 +52,10 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHELLCHECK.PATH": "I do mind",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "/home/huzaifa/PycharmProjects/PythonProject",
+    "last_opened_file_path": "/home/huzaifa/PycharmProjects/Thought-to-Structure Neural System/data",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
@@ -71,7 +72,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-245168a56dbd-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.25134.203" />
+        <option value="bundled-python-sdk-50341a9f1f9c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.26222.68" />
       </set>
     </attachedChunks>
   </component>

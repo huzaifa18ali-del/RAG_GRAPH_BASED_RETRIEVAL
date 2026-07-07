@@ -6,6 +6,11 @@
 #   - Moderate similarity floor: medical terminology clusters well but
 #     different drugs/conditions can use similar language
 #   - Larger HDBSCAN min_cluster: medical topics need statistical weight
+#   - More neighbors per node + recall-favoring search: trial reports
+#     cross-reference heavily across arms, dosages, and endpoints — the
+#     same sparse-section problem seen in citation-heavy academic papers
+#   - Wider query-time candidate pool: adverse events and specific figures
+#     are low-frequency relative to repeated background/rationale language
 #   - Custom theme dictionary pointing to medical concept keywords
 
 paths:
@@ -39,10 +44,14 @@ phase2:
   chunk_stride: 128
 
 phase3:
-  top_k: 5
+  top_k: 7                          # trial reports cross-reference arms, dosages,
+                                     # and endpoints as densely as statutes
+                                     # reference other provisions
   hnsw_m: 32
   hnsw_ef_construction: 200
-  hnsw_ef_search: 64
+  hnsw_ef_search: 80                # favor recall; adverse-event and outcome
+                                     # sentences are sparser than the repeated
+                                     # background/rationale language
   dynamic_threshold_sigma: 0.5
   global_threshold_min: 0.40        # slightly higher than literary; med terms are precise
   global_threshold_max: 0.90
@@ -51,6 +60,19 @@ phase3:
   hdbscan_metric: "euclidean"
   louvain_resolution: 1.0
   louvain_edge_threshold: 0.50
+
+  # --- Sequential / proximity edges ---
+  enable_sequential_edges: true
+  sequential_window: 2
+  sequential_edge_weight: 0.30      # FIXED: base config set this to 0.6, which is
+                                     # *above* its own global_threshold_min (0.35),
+                                     # contradicting the stated intent that
+                                     # sequential edges should never outrank a real
+                                     # semantic match. Kept just below this domain's
+                                     # own threshold_min (0.40) instead.
+  enable_cross_paragraph_sequential: false   # leave false — a heading like
+                                     # "Adverse Events" bridging into an unrelated
+                                     # section would misattribute findings
 
 phase4:
   top_n_per_cluster: 5
@@ -63,11 +85,52 @@ phase4:
 phase5:
   embed_model_name: "all-mpnet-base-v2"
   rerank_model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
-  default_top_k: 5
+  default_top_k: 7                  # matches phase3.top_k
   faiss_nprobe: 8
   faiss_nlist: 64
-  rerank_fetch_mult: 4
+  rerank_fetch_mult: 5              # wider pre-rerank pool so low-frequency
+                                     # figures (adverse events, exact dosages)
+                                     # aren't filtered out before reranking
   default_alpha: 0.5
   default_approx_k: 0
   console_width: 96
   theme_dict_path: "configs/themes_clinical.json"
+
+# -----------------------------------------------------------------------------
+# ppr — Dynamic query-time graph traversal (Personalized PageRank)
+# -----------------------------------------------------------------------------
+ppr:
+  seed_top_n: 9                # broader than default — trial reports repeat
+                                 # background/rationale language that would
+                                 # otherwise dominate seeding over specific results
+  result_top_m: 9
+  pagerank_alpha: 0.9
+  max_iter: 200
+  tol: 1.0e-6
+  min_edge_weight: 0.0
+
+  # --- Rule-based heading-context expansion ---
+  enable_heading_expansion: true
+  max_expansion_per_heading: 20     # sections like "Adverse Events" or "Primary
+                                     # Endpoint" often list many short findings
+                                     # in sequence before the next heading
+  min_words_for_heading: 8
+  expansion_stop_at_boundary: true
+  min_expansion_before_boundary: 4  # avoids collapsing expansion to near-zero on
+                                     # short subheadings (e.g. "Table 2." labels)
+
+# -----------------------------------------------------------------------------
+# llm — Local generative synthesis (Ollama)
+# -----------------------------------------------------------------------------
+llm:
+  provider: "ollama"
+  ollama_base_url: "http://localhost:11434"
+  model_name: "llama3.1"
+  connect_timeout_seconds: 5.0
+  request_timeout_seconds: 200.0
+  temperature: 0.1                 # lower than default — precise figures
+                                    # (dosages, p-values, adverse event counts)
+                                    # tolerate less generative drift than prose
+  num_predict: 350
+  max_context_chars: 7000          # larger than default so numeric tables/
+                                    # figures aren't truncated before synthesis

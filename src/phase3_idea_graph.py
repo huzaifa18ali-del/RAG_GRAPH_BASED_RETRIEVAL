@@ -420,7 +420,7 @@ def build_idea_graph(
     hnsw_indices: np.ndarray,
     sentence_records: list[dict],
     cluster_labels: np.ndarray,
-    manifest: Optional[list[dict]],
+    manifest: list[dict],
     top_k: int = TOP_K,
     calibrated_floor: float = GLOBAL_THRESHOLD_MIN,
 ) -> list[dict]:
@@ -434,19 +434,30 @@ def build_idea_graph(
     reasonable approximation since HNSW recall is high and the global
     mean/std of similarities changes slowly with corpus size.
 
+    Row i of every HNSW array corresponds to embedding row i, i.e. to
+    manifest[i] — NOT to sentence_records[i]. sentence_records is Phase 1's
+    pre-deduplication list, so it is longer than embeddings whenever Phase 2
+    dropped duplicates, and the dropped entries can be anywhere in the list.
+    manifest[i]["sentence_index"] is the only valid pointer from an embedding
+    row back into sentence_records; paragraph_id/source_file/parent are read
+    straight off the manifest entry itself, since Phase 2 already copied them
+    there from the parent record.
+
     Args:
         hnsw_similarities : (N, K) cosine similarities from compute_neighbors_hnsw.
-        hnsw_indices       : (N, K) corresponding sentence indices.
-        sentence_records   : Original sentence metadata.
+        hnsw_indices       : (N, K) corresponding embedding-row indices.
+        sentence_records   : Phase 1's raw, pre-deduplication sentence metadata.
         cluster_labels      : Per-node cluster assignment.
-        manifest            : Optional Phase 2 chunk manifest.
+        manifest            : Phase 2 chunk manifest (required — the sole
+                              source of truth for embedding-row → sentence
+                              mapping). Length must equal len(hnsw_similarities).
         top_k               : Hard cap on neighbors per node.
         calibrated_floor    : Document-adaptive floor from calibrate_floor().
 
     Returns:
         List of enriched graph-node dicts.
     """
-    n     = len(sentence_records)
+    n     = len(manifest)   # authoritative: one entry per embedding row
     graph = []
     log.info("Building idea graph (HNSW, top_k=%d, floor=%.4f)…", top_k, calibrated_floor)
 
@@ -476,11 +487,18 @@ def build_idea_graph(
             if len(neighbors) >= top_k:
                 break
 
-        chunk_meta = manifest[i] if manifest else {}
+        chunk_meta   = manifest[i]
+        src_idx      = chunk_meta["sentence_index"]  # → sentence_records, NOT positional i
+        src_record   = sentence_records[src_idx]
+
         graph.append({
             "sentence_id":    i,
-            "sentence":       sentence_records[i]["sentence"],
-            "paragraph_id":   sentence_records[i].get("paragraph_id"),
+            "sentence":       src_record["sentence"],
+            # paragraph_id is read from the manifest entry itself (Phase 2
+            # copies it there from the parent record at chunk time), which
+            # is equivalent to src_record.get("paragraph_id") but avoids a
+            # second lookup and matches what chunk_records() actually wrote.
+            "paragraph_id":   chunk_meta.get("paragraph_id"),
             "cluster_id":     int(cluster_labels[i]),
             "threshold_used": round(thresh, 6),
             "chunk_index":    chunk_meta.get("chunk_index", 0),
@@ -760,40 +778,53 @@ def main() -> None:
         log.error("Failed to load Phase 3 inputs: %s", exc)
         raise
 
-    # Validate and align all three data sources.
-    # The authoritative length is len(embeddings) — if sentence_records or
-    # manifest has a different count, truncate or raise accordingly.
-    n_emb  = len(embeddings)
-    n_sent = len(sentence_records)
-    n_man  = len(manifest) if manifest is not None else None
+    # Validate and align all data sources.
+    #
+    # sentence_records is output_v2.json — Phase 1's RAW, pre-deduplication
+    # sentence list. Phase 2 deduplicates before embedding, so embeddings.npy
+    # (and manifest) will almost always be SHORTER than sentence_records, and
+    # the dropped entries are not guaranteed to be a contiguous run at the
+    # end. There is therefore no safe positional relationship between row i
+    # of embeddings and sentence_records[i] — the only trustworthy mapping is
+    # via manifest[i]["sentence_index"], which Phase 2 populates explicitly
+    # for exactly this reason. Positional trimming/truncation of
+    # sentence_records is NOT used anywhere in this file any more.
+    n_emb = len(embeddings)
+    n_man = len(manifest) if manifest is not None else None
 
-    if manifest is not None and n_man != n_emb:
+    if manifest is None:
+        raise ValueError(
+            "embeddings_manifest.json is required to align embeddings with "
+            "sentence_records (Phase 2 deduplication/chunking means positional "
+            "alignment cannot be assumed). Re-run Phase 2 to regenerate it."
+        )
+
+    if n_man != n_emb:
         raise ValueError(
             f"Embedding / manifest count mismatch: "
             f"{n_emb} embeddings vs {n_man} manifest entries. "
             "Re-run Phase 2."
         )
 
-    if n_sent != n_emb:
-        # Common cause: Phase 1 produced one extra blank/duplicate that Phase 2
-        # deduplicated, leaving sentence_records 1 longer than embeddings.
-        # Safe fix: truncate sentence_records to match embeddings.
-        if abs(n_sent - n_emb) <= 5:
-            log.warning(
-                "sentence_records (%d) vs embeddings (%d) — trimming sentence_records "
-                "to %d (likely a blank/duplicate removed by Phase 2 deduplication).",
-                n_sent, n_emb, n_emb,
-            )
-            sentence_records = sentence_records[:n_emb]
-        else:
-            raise ValueError(
-                f"Embedding / sentence count mismatch is too large to auto-fix: "
-                f"{n_emb} embeddings vs {n_sent} sentence records. "
-                "Re-run Phase 1 and Phase 2."
-            )
+    # Sanity-check every manifest sentence_index up front so a bad/corrupt
+    # manifest fails loudly here instead of raising an obscure IndexError
+    # deep inside graph construction.
+    n_sent = len(sentence_records)
+    bad = [m["sentence_index"] for m in manifest
+           if not (0 <= m.get("sentence_index", -1) < n_sent)]
+    if bad:
+        raise ValueError(
+            f"Manifest references {len(bad)} out-of-range sentence_index "
+            f"value(s) (e.g. {bad[0]}) against {n_sent} sentence_records. "
+            "sentence_records and manifest are from mismatched runs — "
+            "re-run Phase 1 and Phase 2 together."
+        )
 
-    n = len(embeddings)
-    log.info("Corpus size: %d sentences", n)
+    n = n_emb
+    log.info(
+        "Corpus size: %d embedded chunks (from %d raw sentence records "
+        "pre-deduplication)", n, n_sent,
+    )
 
     # 2. Single HNSW neighbor search — reused for floor calibration, optional
     #    Louvain edges, and final graph construction. Computed exactly once.

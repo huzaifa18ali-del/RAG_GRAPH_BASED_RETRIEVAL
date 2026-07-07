@@ -1,0 +1,12 @@
+cd "/home/huzaifa/PycharmProjects/Thought-to-Structure Neural System"
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+
+
+curl -F "file=@data/White Nights - Fyodor Dostoyevsky - PDF.pdf" http://localhost:8000/api/v1/ingest
+
+
+
+
+
+

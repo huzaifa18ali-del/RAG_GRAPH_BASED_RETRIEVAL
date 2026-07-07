@@ -6,6 +6,8 @@
 #   - Higher similarity floor: legal language is precise; only tight semantic matches count
 #   - More neighbors per node: statutes often reference many other provisions
 #   - Larger summary sections: legal summaries need more context per clause cluster
+#   - Heading expansion tuned to avoid false positives on capitalized defined
+#     terms (e.g. "THE PARTY", "WHEREAS") being mistaken for section headings
 #   - Custom theme dictionary: swap out the literary themes for legal concepts
 
 paths:
@@ -51,6 +53,21 @@ phase3:
   louvain_resolution: 1.2           # more granular communities for legal sub-topics
   louvain_edge_threshold: 0.55
 
+  # --- Sequential / proximity edges ---
+  enable_sequential_edges: true
+  sequential_window: 3              # contract clauses often run 3+ short
+                                     # sub-clauses deep (e.g. 12.1(a)(i)) before
+                                     # returning to the main provision
+  sequential_edge_weight: 0.35      # FIXED: base config set this to 0.6, which is
+                                     # *above* its own global_threshold_min (0.35),
+                                     # contradicting the stated intent that
+                                     # sequential edges should never outrank a real
+                                     # semantic match. Kept just below this domain's
+                                     # own threshold_min (0.45) instead.
+  enable_cross_paragraph_sequential: false   # leave false — bridging unrelated
+                                     # clauses risks misattributing obligations
+                                     # across contract sections
+
 phase4:
   top_n_per_cluster: 6              # legal summaries need more supporting context
   max_bridges: 3
@@ -70,3 +87,46 @@ phase5:
   default_approx_k: 0
   console_width: 96
   theme_dict_path: "configs/themes_legal.json"
+
+# -----------------------------------------------------------------------------
+# ppr — Dynamic query-time graph traversal (Personalized PageRank)
+# -----------------------------------------------------------------------------
+ppr:
+  seed_top_n: 8                 # tighter than academic/clinical — legal language
+                                  # clusters precisely, so fewer, higher-confidence
+                                  # seeds are more reliable than a broad net
+  result_top_m: 10               # matches phase4's larger per-cluster context need
+  pagerank_alpha: 0.9
+  max_iter: 200
+  tol: 1.0e-6
+  min_edge_weight: 0.0
+
+  # --- Rule-based heading-context expansion ---
+  enable_heading_expansion: true
+  max_expansion_per_heading: 25     # contract clauses under a single numbered
+                                     # section can run long before the next
+                                     # section boundary
+  min_words_for_heading: 10         # higher than default (8) — legal documents
+                                     # use short ALL-CAPS/Title Case defined terms
+                                     # (e.g. "THE PARTY", "WHEREAS") that would
+                                     # otherwise be misdetected as headings
+  expansion_stop_at_boundary: true
+  min_expansion_before_boundary: 5  # numbered subsections (e.g. "12.1", "12.2")
+                                     # are frequent; a higher floor avoids
+                                     # collapsing expansion to near-zero
+
+# -----------------------------------------------------------------------------
+# llm — Local generative synthesis (Ollama)
+# -----------------------------------------------------------------------------
+llm:
+  provider: "ollama"
+  ollama_base_url: "http://localhost:11434"
+  model_name: "llama3.1"
+  connect_timeout_seconds: 5.0
+  request_timeout_seconds: 200.0
+  temperature: 0.1                 # lower than default — precise contract
+                                    # language tolerates very little generative
+                                    # drift; wording changes can change meaning
+  num_predict: 400                 # legal answers often need to cite/quote
+                                    # specific clause numbers, needing more room
+  max_context_chars: 8000

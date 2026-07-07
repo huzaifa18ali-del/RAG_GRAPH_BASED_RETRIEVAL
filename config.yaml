@@ -243,7 +243,7 @@ llm:
                                             # must already be pulled: `ollama pull llama3`
 
   connect_timeout_seconds: 5.0             # fail fast if the daemon isn't running at all
-  request_timeout_seconds: 120.0           # generous — consumer laptop CPUs can take
+  request_timeout_seconds: 200.0           # generous — consumer laptop CPUs can take
                                             # 30-90s for a single generation pass
 
   temperature: 0.2                         # low — this is factual synthesis, not creative writing
