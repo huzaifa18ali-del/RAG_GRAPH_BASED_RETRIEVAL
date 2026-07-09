@@ -743,7 +743,38 @@ async def query(req: QueryRequest) -> QueryResponse:
         ppr_fallback_used=fallback_used,
         latency_ms=round(total_latency_ms, 1),
     )
+@app.get("/api/v1/summary/{task_id}")
+async def get_summary(task_id: str):
+    """
+    Run Phase 4 summarization on a completed ingestion task and return
+    the structured summary.
+    """
+    task = _get_task(task_id)  # raises 404 if unknown
 
+    if task.status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Task {task_id} is not ready (status={task.status}). "
+                   f"Poll /api/v1/status/{task_id} until completed.",
+        )
+
+    data_dir = Path(task.data_dir)
+    task_config_path = TASK_CONFIG_DIR / f"{task_id}.yaml"
+
+    if not task_config_path.exists():
+        raise HTTPException(status_code=404, detail="Task config not found.")
+
+    try:
+        os.environ["PIPELINE_CONFIG"] = str(task_config_path)
+        mod = _import_phase_module("phase4_gnn_refiner")
+        summary = await asyncio.to_thread(mod.run)
+    except Exception as exc:
+        log.exception("Phase 4 failed for task %s", task_id)
+        raise HTTPException(status_code=500, detail=f"Summarization failed: {exc}")
+    finally:
+        os.environ.pop("PIPELINE_CONFIG", None)
+
+    return {"task_id": task_id, "summary": summary}
 
 @app.get("/healthz")
 async def healthz() -> dict[str, str]:
