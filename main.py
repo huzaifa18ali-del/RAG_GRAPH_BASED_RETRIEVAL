@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import json
 import logging
 import os
 import shutil
@@ -36,7 +37,7 @@ from typing import Any, Optional
 import numpy as np
 import yaml
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 # ---------------------------------------------------------------------------
@@ -79,6 +80,7 @@ if str(SRC_DIR) not in sys.path:
 from config_loader import load_config  # noqa: E402
 import graph_traversal as gt            # noqa: E402
 import llm_synthesizer as ls            # noqa: E402
+import visualize as vz                  # noqa: E402
 
 _BASE_CFG = load_config(str(BASE_CONFIG_PATH))
 
@@ -373,6 +375,212 @@ async def ingest(background_tasks: BackgroundTasks, file: UploadFile = File(...)
 async def get_status(task_id: str) -> TaskStatus:
     """Poll the status of a previously submitted ingestion task."""
     return _get_task(task_id)
+
+
+# ---------------------------------------------------------------------------
+# Summary endpoint — Phase 4 structured summarization on demand
+# ---------------------------------------------------------------------------
+
+_SUMMARY_CACHE: dict[str, tuple[float, list[dict]]] = {}
+_SUMMARY_CACHE_LOCK = threading.Lock()
+
+
+class SummaryResponse(BaseModel):
+    task_id: str
+    summary: list[dict]
+
+
+def _compute_summary(task_id: str, data_dir: Path) -> list[dict]:
+    """
+    Run Phase 4 (phase4_gnn_refiner) against this task's data directory and
+    return the structured summary, using the same per-task config-cloning
+    pattern as ingestion so Phase 4 reads this task's idea_graph.json /
+    cluster_summary.json instead of another task's.
+
+    Serialized behind _PIPELINE_LOCK because — like the ingestion phases —
+    phase4_gnn_refiner reads its paths/params from config_loader.load_config()
+    at *import* time via the process-wide PIPELINE_CONFIG env var, which is
+    not safe to mutate concurrently from two requests.
+    """
+    idea_graph_path = data_dir / _BASE_CFG.paths.output_graph
+    cluster_path = data_dir / _BASE_CFG.paths.output_clusters
+    if not idea_graph_path.exists() or not cluster_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Summary artifacts not found for this task at {data_dir}. "
+                   f"Has ingestion completed?",
+        )
+
+    mtime = cluster_path.stat().st_mtime
+    cache_key = str(data_dir)
+
+    with _SUMMARY_CACHE_LOCK:
+        cached = _SUMMARY_CACHE.get(cache_key)
+        if cached is not None and cached[0] == mtime:
+            return cached[1]
+
+    with _PIPELINE_LOCK:
+        task_config_path = TASK_CONFIG_DIR / f"{task_id}.yaml"
+        if not task_config_path.exists():
+            task_config_path = _write_task_config(task_id, data_dir)
+
+        prev_pipeline_config = os.environ.get("PIPELINE_CONFIG")
+        os.environ["PIPELINE_CONFIG"] = str(task_config_path)
+        try:
+            mod = _import_phase_module("phase4_gnn_refiner")
+            structured_summary = mod.run(debug=False)
+        except Exception as exc:
+            log.exception("[%s] Phase 4 summarization failed", task_id)
+            raise HTTPException(
+                status_code=500, detail=f"Summarization failed: {type(exc).__name__}: {exc}"
+            ) from exc
+        finally:
+            if prev_pipeline_config is not None:
+                os.environ["PIPELINE_CONFIG"] = prev_pipeline_config
+            else:
+                os.environ.pop("PIPELINE_CONFIG", None)
+
+    with _SUMMARY_CACHE_LOCK:
+        _SUMMARY_CACHE[cache_key] = (mtime, structured_summary)
+
+    return structured_summary
+
+
+@app.get("/api/v1/summary/{task_id}", response_model=SummaryResponse)
+async def get_summary(task_id: str) -> SummaryResponse:
+    """
+    Return the Phase 4 structured summary (cluster-by-cluster paragraphs +
+    cross-cluster bridge sentences) for a previously ingested document.
+
+    404 - unknown task_id, or the idea graph / cluster summary don't exist yet.
+    409 - task exists but ingestion failed or is still in progress.
+    500 - Phase 4 raised while summarizing.
+    """
+    task = _get_task(task_id)  # raises 404 if unknown
+
+    if task.status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Task {task_id} is not ready for summarization (status={task.status}, "
+                   f"stage={task.stage}). Poll GET /api/v1/status/{task_id} until completed.",
+        )
+
+    data_dir = Path(task.data_dir)
+    structured_summary = await asyncio.to_thread(_compute_summary, task_id, data_dir)
+
+    return SummaryResponse(task_id=task_id, summary=structured_summary)
+
+
+# ---------------------------------------------------------------------------
+# Graph explorer endpoint — on-demand interactive idea-graph HTML, reusing
+# visualize.py's build_html() verbatim (same script the CLI uses to write
+# idea_graph_explorer.html) instead of duplicating any rendering logic.
+# ---------------------------------------------------------------------------
+
+_GRAPH_HTML_CACHE: dict[str, tuple[float, str]] = {}
+_GRAPH_HTML_CACHE_LOCK = threading.Lock()
+
+
+def _compute_graph_html(data_dir: Path) -> str:
+    """
+    Load this task's idea_graph.json (+ optional cluster_summary.json /
+    embeddings_manifest.json) and render the same self-contained explorer
+    HTML visualize.py's CLI writes to disk, via its build_html().
+
+    Cached per data_dir, invalidated by idea_graph.json's mtime — mirrors
+    the GraphIndex / summary caching pattern above.
+    """
+    idea_graph_path = data_dir / _BASE_CFG.paths.output_graph
+    if not idea_graph_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"No idea graph found for this task at {idea_graph_path}. "
+                   f"Has ingestion completed?",
+        )
+
+    mtime = idea_graph_path.stat().st_mtime
+    cache_key = str(data_dir)
+
+    with _GRAPH_HTML_CACHE_LOCK:
+        cached = _GRAPH_HTML_CACHE.get(cache_key)
+        if cached is not None and cached[0] == mtime:
+            return cached[1]
+
+    # cluster_summary.json / embeddings_manifest.json are both optional
+    # enrichments for build_html() — a missing file just means a plainer
+    # explorer, not an error. cluster filename comes from the shared config
+    # (same field _compute_summary uses); the manifest has no config entry
+    # of its own, so fall back to visualize.py's own default basename.
+    cluster_path = data_dir / _BASE_CFG.paths.output_clusters
+    manifest_path = data_dir / os.path.basename(vz.DEFAULT_MANIFEST_PATH)
+
+    try:
+        with idea_graph_path.open("r", encoding="utf-8") as fh:
+            graph = json.load(fh)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to parse idea_graph.json: {exc}"
+        ) from exc
+
+    cluster_summary = None
+    if cluster_path.exists():
+        try:
+            with cluster_path.open("r", encoding="utf-8") as fh:
+                cluster_summary = json.load(fh)
+        except json.JSONDecodeError as exc:
+            log.warning("Failed to parse cluster_summary.json for %s: %s", data_dir, exc)
+
+    manifest = None
+    if manifest_path.exists():
+        try:
+            with manifest_path.open("r", encoding="utf-8") as fh:
+                manifest = json.load(fh)
+        except json.JSONDecodeError as exc:
+            log.warning("Failed to parse embeddings_manifest.json for %s: %s", data_dir, exc)
+
+    # validate_graph() is written for the CLI and calls sys.exit() on
+    # malformed input — fine for a one-shot script, fatal for a live
+    # server. Catch it here and convert to a normal HTTP error instead.
+    try:
+        vz.validate_graph(graph)
+    except SystemExit as exc:
+        log.error("Graph validation failed for %s: %s", data_dir, exc)
+        raise HTTPException(
+            status_code=500, detail=f"Graph validation failed: {exc}"
+        ) from exc
+
+    html = vz.build_html(graph, cluster_summary, manifest, str(idea_graph_path))
+
+    with _GRAPH_HTML_CACHE_LOCK:
+        _GRAPH_HTML_CACHE[cache_key] = (mtime, html)
+
+    return html
+
+
+@app.get("/api/v1/graph/{task_id}", response_class=HTMLResponse)
+async def get_graph_explorer(task_id: str) -> HTMLResponse:
+    """
+    Render the interactive idea-graph explorer (nodes = clauses, edges =
+    similarity/sequential links, colored by cluster) for a previously
+    ingested document.
+
+    404 - unknown task_id, or idea_graph.json doesn't exist yet.
+    409 - task exists but ingestion failed or is still in progress.
+    500 - the idea graph failed schema validation, or an artifact is malformed JSON.
+    """
+    task = _get_task(task_id)  # raises 404 if unknown
+
+    if task.status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Task {task_id} is not ready for graph exploration (status={task.status}, "
+                   f"stage={task.stage}). Poll GET /api/v1/status/{task_id} until completed.",
+        )
+
+    data_dir = Path(task.data_dir)
+    html = await asyncio.to_thread(_compute_graph_html, data_dir)
+
+    return HTMLResponse(content=html)
 
 
 # ---------------------------------------------------------------------------
