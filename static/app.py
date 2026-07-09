@@ -7,11 +7,7 @@ API_BASE = "http://localhost:8000"
 
 st.set_page_config(page_title="Statis", page_icon="◈", layout="centered")
 
-# ---------------------------------------------------------------------------
-# Visual identity: IBM Plex Sans for UI copy, IBM Plex Mono for data/scores/
-# model names. Deep indigo as the single accent; muted teal reserved for
-# "expanded" provenance tags so color carries meaning, not decoration.
-# ---------------------------------------------------------------------------
+
 st.markdown(
     """
     <style>
